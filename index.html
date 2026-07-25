@@ -382,6 +382,111 @@
     .quick b{display:block;font-size:18px;margin-bottom:7px}
     .quick span{color:var(--muted);font-size:14px}
 
+
+
+    .client-form{
+      display:grid;
+      grid-template-columns:1.4fr 1fr auto;
+      gap:14px;
+      align-items:end;
+      margin-top:20px;
+    }
+
+    .field label{
+      display:block;
+      margin-bottom:7px;
+      font-size:14px;
+      font-weight:800;
+      color:var(--text);
+    }
+
+    .field label span{
+      color:var(--danger);
+    }
+
+    .field input{
+      width:100%;
+      min-height:50px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:0 15px;
+      background:#fff;
+      outline:none;
+      transition:.15s;
+    }
+
+    .field input:focus{
+      border-color:var(--primary);
+      box-shadow:0 0 0 3px rgba(143,29,34,.10);
+    }
+
+    .primary-btn{
+      min-height:50px;
+      border:none;
+      border-radius:14px;
+      padding:0 20px;
+      background:var(--primary);
+      color:white;
+      font-weight:800;
+      cursor:pointer;
+    }
+
+    .primary-btn:hover{background:var(--primary-dark)}
+
+    .form-message{
+      min-height:22px;
+      margin-top:12px;
+      font-weight:700;
+    }
+
+    .form-message.error{color:var(--danger)}
+    .form-message.success{color:var(--success)}
+
+    .clients-toolbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:14px;
+      margin:26px 0 12px;
+    }
+
+    .clients-toolbar h4{
+      margin:0;
+      font-size:18px;
+    }
+
+    .clients-count{
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    .clients-list{
+      display:grid;
+      gap:10px;
+    }
+
+    .client-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:14px;
+      padding:15px 16px;
+      border:1px solid var(--border);
+      border-radius:15px;
+      background:#fbf9f7;
+    }
+
+    .client-row strong{display:block}
+    .client-row small{display:block;color:var(--muted);margin-top:4px}
+
+    .empty-clients{
+      padding:28px;
+      text-align:center;
+      border:2px dashed var(--border);
+      border-radius:16px;
+      color:var(--muted);
+    }
+
     .module-placeholder{
       padding:38px;
       text-align:center;
@@ -399,6 +504,7 @@
       .side-user{justify-content:center;padding:10px}
       .stats{grid-template-columns:repeat(2,1fr)}
       .quick-actions{grid-template-columns:1fr}
+      .client-form{grid-template-columns:1fr}
     }
 
     @media(max-width:620px){
@@ -559,7 +665,32 @@
       <section id="moduleContent" class="panel hidden">
         <h3 id="placeholderTitle"></h3>
         <p id="placeholderText"></p>
-        <div class="module-placeholder">
+
+        <div id="clientsModule" class="hidden">
+          <form id="clientForm" class="client-form" novalidate>
+            <div class="field">
+              <label for="clientName">Nombre del cliente <span>*</span></label>
+              <input id="clientName" type="text" autocomplete="off" placeholder="Ej. Carnicería San José" />
+            </div>
+
+            <div class="field">
+              <label for="clientPhone">Número de teléfono <small>(opcional)</small></label>
+              <input id="clientPhone" type="tel" inputmode="tel" autocomplete="off" placeholder="Ej. 4621234567" />
+            </div>
+
+            <button class="primary-btn" type="submit">Guardar cliente</button>
+          </form>
+
+          <div id="clientMessage" class="form-message"></div>
+
+          <div class="clients-toolbar">
+            <h4>Clientes registrados</h4>
+            <div id="clientsCount" class="clients-count">0 clientes</div>
+          </div>
+          <div id="clientsList" class="clients-list"></div>
+        </div>
+
+        <div id="genericPlaceholder" class="module-placeholder">
           Este módulo se agregará en la siguiente etapa sobre esta misma base.
         </div>
       </section>
@@ -597,7 +728,8 @@
     const state = {
       selectedUser: null,
       pin: "",
-      users: JSON.parse(localStorage.getItem("carniceria360_users")) || DEFAULT_USERS
+      users: JSON.parse(localStorage.getItem("carniceria360_users")) || DEFAULT_USERS,
+      clients: JSON.parse(localStorage.getItem("carniceria360_clients")) || []
     };
 
     const loginScreen = document.getElementById("loginScreen");
@@ -610,6 +742,89 @@
 
     function saveUsers(){
       localStorage.setItem("carniceria360_users", JSON.stringify(state.users));
+    }
+
+
+    function saveClients(){
+      localStorage.setItem("carniceria360_clients", JSON.stringify(state.clients));
+    }
+
+    function escapeHtml(value){
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function renderClients(){
+      const list = document.getElementById("clientsList");
+      const count = document.getElementById("clientsCount");
+      if(!list || !count) return;
+
+      count.textContent = `${state.clients.length} ${state.clients.length === 1 ? "cliente" : "clientes"}`;
+
+      if(state.clients.length === 0){
+        list.innerHTML = '<div class="empty-clients">Todavía no hay clientes registrados.</div>';
+        return;
+      }
+
+      list.innerHTML = [...state.clients]
+        .sort((a,b) => a.name.localeCompare(b.name, "es"))
+        .map(client => `
+          <div class="client-row">
+            <div>
+              <strong>${escapeHtml(client.name)}</strong>
+              <small>${client.phone ? `Tel. ${escapeHtml(client.phone)}` : "Sin número registrado"}</small>
+            </div>
+          </div>
+        `).join("");
+    }
+
+    function registerClient(event){
+      event.preventDefault();
+
+      const nameInput = document.getElementById("clientName");
+      const phoneInput = document.getElementById("clientPhone");
+      const message = document.getElementById("clientMessage");
+      const name = nameInput.value.trim();
+      const phone = phoneInput.value.trim();
+
+      message.className = "form-message";
+      message.textContent = "";
+
+      if(!name){
+        message.classList.add("error");
+        message.textContent = "El nombre del cliente es obligatorio.";
+        nameInput.focus();
+        return;
+      }
+
+      const duplicate = state.clients.some(client =>
+        client.name.trim().toLowerCase() === name.toLowerCase()
+      );
+
+      if(duplicate){
+        message.classList.add("error");
+        message.textContent = "Ya existe un cliente con ese nombre.";
+        nameInput.focus();
+        return;
+      }
+
+      state.clients.push({
+        id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+        name,
+        phone,
+        createdAt: new Date().toISOString()
+      });
+
+      saveClients();
+      renderClients();
+      event.target.reset();
+      message.classList.add("success");
+      message.textContent = "Cliente guardado correctamente.";
+      nameInput.focus();
     }
 
     function renderProfiles(){
@@ -769,6 +984,18 @@
         moduleContent.classList.remove("hidden");
         document.getElementById("placeholderTitle").textContent = info.title;
         document.getElementById("placeholderText").textContent = info.text;
+
+        const clientsModule = document.getElementById("clientsModule");
+        const genericPlaceholder = document.getElementById("genericPlaceholder");
+        const isClients = module === "clientes";
+
+        clientsModule.classList.toggle("hidden", !isClients);
+        genericPlaceholder.classList.toggle("hidden", isClients);
+
+        if(isClients){
+          renderClients();
+          setTimeout(() => document.getElementById("clientName").focus(), 0);
+        }
       }
     }
 
@@ -784,6 +1011,7 @@
 
     document.getElementById("enterBtn").addEventListener("click", login);
     document.getElementById("logoutBtn").addEventListener("click", logout);
+    document.getElementById("clientForm").addEventListener("submit", registerClient);
 
     document.querySelectorAll(".menu button").forEach(button => {
       button.addEventListener("click", () => showModule(button.dataset.module));
