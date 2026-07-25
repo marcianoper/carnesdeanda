@@ -23,6 +23,8 @@
 .account-toolbar{display:grid;grid-template-columns:minmax(240px,1fr) auto;gap:12px;align-items:end;margin-bottom:18px}.account-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}.account-card{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fbf8f5}.account-card small{display:block;color:var(--muted);font-weight:700}.account-card strong{display:block;font-size:24px;margin-top:7px}.account-card.balance strong{color:var(--bad)}.payment-box{border:1px solid var(--line);border-radius:17px;padding:17px;margin-bottom:18px;background:#fff}.payment-grid{display:grid;grid-template-columns:1fr 1fr 1.3fr auto;gap:10px;align-items:end}.movement-list{display:grid;gap:12px}.movement{border:1px solid var(--line);border-radius:16px;background:#fff;overflow:hidden}.movement-head{display:flex;justify-content:space-between;gap:16px;padding:15px;cursor:pointer}.movement-head:hover{background:#fbf8f5}.movement.credit{border-left:5px solid var(--p)}.movement.payment{border-left:5px solid var(--ok)}.movement-meta{color:var(--muted);font-size:13px;margin-top:5px}.movement-amount{text-align:right;white-space:nowrap}.movement-amount strong{display:block;font-size:18px}.movement.credit .movement-amount strong{color:var(--bad)}.movement.payment .movement-amount strong{color:var(--ok)}.movement-detail{display:none;padding:0 15px 15px;border-top:1px solid var(--line);background:#fcfaf8}.movement.open .movement-detail{display:block}.detail-table{width:100%;border-collapse:collapse;margin-top:12px}.detail-table th,.detail-table td{padding:9px 7px;border-bottom:1px solid var(--line);text-align:left}.detail-table th{font-size:12px;color:var(--muted);text-transform:uppercase}.detail-table .num{text-align:right}.client-balance{font-weight:900;color:var(--bad)}.status-paid{color:var(--ok)}.status-pending{color:var(--bad)}
 @media(max-width:950px){.app{grid-template-columns:82px 1fr}.side-brand strong,.side-brand small,.menu button span,.side-user div,.logout{display:none}.menu button{text-align:center}.stats{grid-template-columns:repeat(2,1fr)}.note-layout{grid-template-columns:1fr}.quick-actions{grid-template-columns:1fr}.line-grid{grid-template-columns:1fr 1fr}.line-grid .product-field{grid-column:1/-1}}
 @media(max-width:620px){.account-summary{grid-template-columns:1fr}.account-toolbar,.payment-grid{grid-template-columns:1fr}.movement-head{align-items:flex-start}.movement-amount{font-size:13px}.login-box{padding:22px 16px}.profiles{grid-template-columns:repeat(2,1fr)}.avatar{width:78px;height:78px}.app{display:block}.sidebar{position:fixed;left:0;right:0;bottom:0;height:72px;z-index:10;flex-direction:row;padding:8px}.side-brand,.side-user,.logout{display:none}.menu{width:100%;flex-direction:row;justify-content:space-around}.menu button{padding:12px}.menu button:nth-child(n+6){display:none}.content{padding:18px 14px 95px}.date-chip{display:none}.stats,.form-grid{grid-template-columns:1fr}.line-grid{grid-template-columns:1fr}.line-grid .product-field{grid-column:auto}.price-toolbar{grid-template-columns:1fr}.price-table{font-size:13px}.price-table input{width:100px}}
+
+.admin-only.hidden-by-role{display:none!important}.admin-note{padding:10px 12px;border-radius:12px;background:#fff3cd;color:#664d03;font-weight:700;margin-bottom:15px}.product-admin-grid{display:grid;grid-template-columns:2fr 1fr auto;gap:10px;align-items:end;margin-bottom:18px}.product-admin-list{display:grid;gap:10px}.product-admin-row{display:grid;grid-template-columns:1fr 140px auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:12px}.product-admin-row input{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px}.daily-toolbar{display:grid;grid-template-columns:220px auto;gap:12px;align-items:end;margin-bottom:18px}.daily-summary-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.daily-card{border:1px solid var(--line);border-radius:16px;padding:15px;background:#fbf8f5}.daily-card small{display:block;color:var(--muted);font-weight:700}.daily-card strong{display:block;font-size:22px;margin-top:6px}.daily-client{border:1px solid var(--line);border-radius:16px;margin-bottom:14px;overflow:hidden}.daily-client-head{display:flex;justify-content:space-between;gap:15px;padding:14px;background:#fbf8f5}.daily-client-body{padding:0 14px 14px}.daily-totals{margin-top:18px;border-top:2px solid var(--line);padding-top:16px}.danger-mini{border:0;background:#fee4e2;color:var(--bad);border-radius:10px;padding:9px 11px;font-weight:800;cursor:pointer}@media(max-width:750px){.product-admin-grid,.product-admin-row,.daily-toolbar,.daily-summary-cards{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -53,6 +55,8 @@
     <button data-module="clientes">👥 <span>Clientes</span></button>
     <button data-module="precios">💲 <span>Precios</span></button>
     <button data-module="historial">📚 <span>Historial</span></button>
+    <button class="admin-only" data-module="productos-admin">🥩 <span>Productos</span></button>
+    <button class="admin-only" data-module="resumen-diario">📋 <span>Resumen diario</span></button>
   </nav>
   <div class="side-user"><div id="miniAvatar" class="mini-avatar">E</div><div><strong id="sideUserName"></strong><small id="sideUserRole"></small></div></div>
   <button id="logoutBtn" class="logout">Cerrar sesión</button>
@@ -130,6 +134,29 @@
       </div>
     </div>
 
+
+
+    <div id="productsAdminModule" class="hidden">
+      <div class="admin-note">Solo el administrador puede dar de alta productos, cambiar precios generales o eliminarlos.</div>
+      <div class="product-admin-grid">
+        <div class="field"><label>Nombre del producto</label><input id="newProductName" placeholder="Ej. Aguayón"></div>
+        <div class="field"><label>Precio general</label><input id="newProductPrice" type="number" min="0" step="0.01" placeholder="0.00"></div>
+        <button id="addProductBtn" class="primary-btn" type="button">Agregar producto</button>
+      </div>
+      <div id="productAdminMessage" class="form-message"></div>
+      <div id="productAdminList" class="product-admin-list"></div>
+    </div>
+
+    <div id="dailySummaryModule" class="hidden">
+      <div class="admin-note">Resumen general de todas las notas y abonos registrados en la fecha seleccionada.</div>
+      <div class="daily-toolbar">
+        <div class="field"><label>Fecha</label><input id="dailyDate" type="date"></div>
+        <button id="refreshDailyBtn" class="primary-btn" type="button">Ver resumen</button>
+      </div>
+      <div id="dailySummaryCards" class="daily-summary-cards"></div>
+      <div id="dailySummaryList"></div>
+    </div>
+
     <div id="historyModule" class="hidden">
       <div class="account-toolbar">
         <div class="field"><label>Estado de cuenta del cliente</label><select id="accountClient"></select></div>
@@ -195,7 +222,9 @@ function selectUser(id){state.selectedUser=state.users.find(u=>u.id===id);state.
 function updateDots(){document.querySelectorAll(".pin-dot").forEach((d,i)=>d.classList.toggle("filled",i<state.pin.length))}
 function addPin(n){if(!state.selectedUser||state.pin.length>=4)return;state.pin+=n;updateDots();if(state.pin.length===4)setTimeout(login,100)}
 function login(){if(!state.selectedUser)return;if(state.pin!==state.selectedUser.pin){$("loginError").textContent="PIN incorrecto.";state.pin="";updateDots();return}sessionStorage.setItem("c360_session",state.selectedUser.id);openApp(state.selectedUser)}
-function openApp(u){$("loginScreen").classList.add("hidden");$("appScreen").classList.remove("hidden");$("sideUserName").textContent=u.name;$("sideUserRole").textContent=u.role;$("miniAvatar").textContent=u.initials;$("welcomeText").textContent=`Bienvenido, ${u.name}.`;showModule("inicio");updateStats()}
+function isAdmin(){return state.selectedUser?.role==="Administrador"}
+function applyRolePermissions(){document.querySelectorAll(".admin-only").forEach(el=>el.classList.toggle("hidden-by-role",!isAdmin()))}
+function openApp(u){$("loginScreen").classList.add("hidden");$("appScreen").classList.remove("hidden");$("sideUserName").textContent=u.name;$("sideUserRole").textContent=u.role;$("miniAvatar").textContent=u.initials;$("welcomeText").textContent=`Bienvenido, ${u.name}.`;applyRolePermissions();showModule("inicio");updateStats()}
 function logout(){sessionStorage.removeItem("c360_session");location.reload()}
 
 function registerClient(e){
@@ -268,20 +297,44 @@ const cid=$("accountClient").value,amount=Number($("paymentAmount").value),metho
 if(!cid){m.classList.add("error");m.textContent="Selecciona un cliente.";return}const balance=clientTotals(cid).balance;if(!amount||amount<=0){m.classList.add("error");m.textContent="Captura un abono válido.";return}if(amount>balance){m.classList.add("error");m.textContent=`El abono no puede superar el saldo de ${money.format(balance)}.`;return}
 const client=state.clients.find(c=>c.id===cid);state.payments.unshift({id:uid(),clientId:cid,clientName:client.name,amount,method,reference,userId:state.selectedUser.id,userName:state.selectedUser.name,createdAt:new Date().toISOString()});save();$("paymentAmount").value="";$("paymentReference").value="";m.classList.add("success");m.textContent="Abono registrado correctamente.";renderHistory();renderClients();updateStats()
 }
+
+function renderProductAdmin(){
+ if(!isAdmin())return;
+ $("productAdminList").innerHTML=state.products.length?state.products.map(p=>`<div class="product-admin-row"><input class="edit-product-name" data-id="${p.id}" value="${esc(p.name)}"><input class="edit-product-price" data-id="${p.id}" type="number" min="0" step="0.01" value="${Number(p.price).toFixed(2)}"><button class="danger-mini" data-delete-product="${p.id}">Eliminar</button></div>`).join(""):`<div class="empty">No hay productos registrados.</div>`;
+ document.querySelectorAll(".edit-product-name,.edit-product-price").forEach(inp=>inp.onchange=()=>{const p=state.products.find(x=>x.id===inp.dataset.id);if(!p)return;if(inp.classList.contains("edit-product-name")){const name=inp.value.trim();if(name)p.name=name;else inp.value=p.name}else{const value=Number(inp.value);if(value>=0)p.price=value;else inp.value=p.price}save();renderProductSelect();renderPrices();updateStats()});
+ document.querySelectorAll("[data-delete-product]").forEach(btn=>btn.onclick=()=>{const id=btn.dataset.deleteProduct;if(state.notes.some(n=>n.items.some(i=>i.productId===id))){$("productAdminMessage").className="form-message error";$("productAdminMessage").textContent="No se puede eliminar porque el producto ya aparece en notas.";return}state.products=state.products.filter(p=>p.id!==id);Object.values(state.clientPrices).forEach(map=>delete map[id]);save();renderProductAdmin();renderProductSelect();renderPrices();updateStats()})
+}
+function addProduct(){
+ if(!isAdmin())return;const name=$("newProductName").value.trim(),price=Number($("newProductPrice").value),m=$("productAdminMessage");m.className="form-message";m.textContent="";
+ if(!name){m.classList.add("error");m.textContent="Captura el nombre del producto.";return}if(Number.isNaN(price)||price<0){m.classList.add("error");m.textContent="Captura un precio válido.";return}if(state.products.some(p=>p.name.toLowerCase()===name.toLowerCase())){m.classList.add("error");m.textContent="Ese producto ya existe.";return}
+ state.products.push({id:uid(),name,price});save();$("newProductName").value="";$("newProductPrice").value="";m.classList.add("success");m.textContent="Producto agregado correctamente.";renderProductAdmin();renderProductSelect();renderPrices();updateStats()
+}
+function localDateKey(value){const d=new Date(value);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function renderDailySummary(){
+ if(!isAdmin())return;const date=$("dailyDate").value;const notes=state.notes.filter(n=>localDateKey(n.createdAt)===date);const payments=state.payments.filter(p=>localDateKey(p.createdAt)===date);const sales=notes.reduce((s,n)=>s+Number(n.total),0),paid=payments.reduce((s,p)=>s+Number(p.amount),0);const clients=[...new Set(notes.map(n=>n.clientId))];
+ $("dailySummaryCards").innerHTML=`<div class="daily-card"><small>Notas del día</small><strong>${notes.length}</strong></div><div class="daily-card"><small>Clientes atendidos</small><strong>${clients.length}</strong></div><div class="daily-card"><small>Venta a crédito</small><strong>${money.format(sales)}</strong></div><div class="daily-card"><small>Abonos recibidos</small><strong>${money.format(paid)}</strong></div>`;
+ const groups=clients.map(cid=>{const clientNotes=notes.filter(n=>n.clientId===cid),client=state.clients.find(c=>c.id===cid),total=clientNotes.reduce((s,n)=>s+Number(n.total),0);return `<div class="daily-client"><div class="daily-client-head"><div><strong>${esc(client?.name||clientNotes[0]?.clientName||"Cliente")}</strong><small>${clientNotes.length} nota${clientNotes.length===1?"":"s"}</small></div><strong>${money.format(total)}</strong></div><div class="daily-client-body">${clientNotes.map(n=>`<h4>${esc(n.folio)} · ${new Date(n.createdAt).toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"})}</h4><table class="detail-table"><thead><tr><th>Producto</th><th class="num">Cantidad</th><th class="num">Precio</th><th class="num">Importe</th></tr></thead><tbody>${n.items.map(i=>`<tr><td>${esc(i.name)}</td><td class="num">${Number(i.qty).toFixed(3)}</td><td class="num">${money.format(i.price)}</td><td class="num">${money.format(i.amount)}</td></tr>`).join("")}</tbody></table>`).join("")}</div></div>`}).join("");
+ const productMap={};notes.forEach(n=>n.items.forEach(i=>{productMap[i.name]=(productMap[i.name]||0)+Number(i.qty)}));const productRows=Object.entries(productMap).sort((a,b)=>a[0].localeCompare(b[0])).map(([name,qty])=>`<tr><td>${esc(name)}</td><td class="num">${qty.toFixed(3)}</td></tr>`).join("");
+ $("dailySummaryList").innerHTML=groups||`<div class="empty">No hay notas en esta fecha.</div>`;if(notes.length)$("dailySummaryList").innerHTML+=`<div class="daily-totals"><h3>Resumen por producto</h3><table class="detail-table"><thead><tr><th>Producto</th><th class="num">Cantidad total</th></tr></thead><tbody>${productRows}</tbody></table><h3 style="text-align:right">Saldo generado del día: ${money.format(Math.max(0,sales-paid))}</h3></div>`
+}
+
 function updateStats(){$("statSales").textContent=money.format(Math.max(0,state.notes.reduce((s,n)=>s+n.total,0)-state.payments.reduce((s,p)=>s+p.amount,0)));$("statNotes").textContent=state.notes.length;$("statClients").textContent=state.clients.length;$("statProducts").textContent=state.products.length}
-const moduleInfo={inicio:["Inicio","Resumen general del sistema."],"nueva-nota":["Nota a crédito","Captura productos, cantidades y precios para generar el saldo del cliente."],clientes:["Clientes","Registra clientes con nombre obligatorio y teléfono opcional."],precios:["Ajustar precios","Asigna precios distintos para cada cliente."],historial:["Control de crédito","Consulta notas detalladas, saldos y registra abonos."]};
+const moduleInfo={inicio:["Inicio","Resumen general del sistema."],"nueva-nota":["Nota a crédito","Captura productos, cantidades y precios para generar el saldo del cliente."],clientes:["Clientes","Registra clientes con nombre obligatorio y teléfono opcional."],precios:["Ajustar precios","Asigna precios distintos para cada cliente."],historial:["Control de crédito","Consulta notas detalladas, saldos y registra abonos."],"productos-admin":["Productos y precios","Alta, edición y eliminación de productos y precios generales."],"resumen-diario":["Resumen general diario","Todas las notas, clientes, productos y abonos de una fecha."]};
 function showModule(mod){
+if((mod==="productos-admin"||mod==="resumen-diario")&&!isAdmin()){alert("Esta función es exclusiva del administrador.");return}
 $("moduleTitle").textContent=moduleInfo[mod][0];document.querySelectorAll(".menu button").forEach(b=>b.classList.toggle("active",b.dataset.module===mod));
 $("dashboardContent").classList.toggle("hidden",mod!=="inicio");$("moduleContent").classList.toggle("hidden",mod==="inicio");
-["clientsModule","noteModule","pricesModule","historyModule"].forEach(id=>$(id).classList.add("hidden"));
+["clientsModule","noteModule","pricesModule","historyModule","productsAdminModule","dailySummaryModule"].forEach(id=>$(id).classList.add("hidden"));
 if(mod!=="inicio"){$("moduleHeading").textContent=moduleInfo[mod][0];$("moduleDescription").textContent=moduleInfo[mod][1]}
 if(mod==="clientes"){ $("clientsModule").classList.remove("hidden");renderClients()}
 if(mod==="nueva-nota"){ $("noteModule").classList.remove("hidden");refreshClientSelects();renderProductSelect();$("folioPreview").textContent=`Folio provisional: ${folio()}`;renderCurrentItems()}
 if(mod==="precios"){ $("pricesModule").classList.remove("hidden");refreshClientSelects();renderPrices()}
 if(mod==="historial"){ $("historyModule").classList.remove("hidden");refreshClientSelects();renderHistory()}
+if(mod==="productos-admin"){ $("productsAdminModule").classList.remove("hidden");renderProductAdmin()}
+if(mod==="resumen-diario"){ $("dailySummaryModule").classList.remove("hidden");if(!$("dailyDate").value)$("dailyDate").value=localDateKey(new Date());renderDailySummary()}
 }
 document.querySelectorAll("[data-number]").forEach(b=>b.onclick=()=>addPin(b.dataset.number));$("clearPin").onclick=()=>{state.pin="";updateDots()};$("enterBtn").onclick=login;$("logoutBtn").onclick=logout;
-$("clientForm").onsubmit=registerClient;$("noteClient").onchange=updatePriceForLine;$("noteProduct").onchange=updatePriceForLine;$("addItemBtn").onclick=addItem;$("clearNoteBtn").onclick=clearNote;$("saveNoteBtn").onclick=saveNote;$("priceClient").onchange=renderPrices;$("savePricesBtn").onclick=savePrices;$("accountClient").onchange=renderHistory;$("showAllAccountsBtn").onclick=()=>{$("accountClient").value="";renderHistory()};$("savePaymentBtn").onclick=savePayment;
+$("clientForm").onsubmit=registerClient;$("noteClient").onchange=updatePriceForLine;$("noteProduct").onchange=updatePriceForLine;$("addItemBtn").onclick=addItem;$("clearNoteBtn").onclick=clearNote;$("saveNoteBtn").onclick=saveNote;$("priceClient").onchange=renderPrices;$("savePricesBtn").onclick=savePrices;$("accountClient").onchange=renderHistory;$("showAllAccountsBtn").onclick=()=>{$("accountClient").value="";renderHistory()};$("savePaymentBtn").onclick=savePayment;$("addProductBtn").onclick=addProduct;$("refreshDailyBtn").onclick=renderDailySummary;$("dailyDate").onchange=renderDailySummary;
 document.querySelectorAll(".menu button").forEach(b=>b.onclick=()=>showModule(b.dataset.module));document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>showModule(b.dataset.go));
 document.addEventListener("keydown",e=>{if(!$("loginScreen").classList.contains("hidden")){if(/^\d$/.test(e.key))addPin(e.key);if(e.key==="Enter")login()}});
 $("currentDate").textContent=new Date().toLocaleDateString("es-MX",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
