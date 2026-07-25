@@ -1,1063 +1,254 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Carnicería 360° — Acceso</title>
-  <style>
-    :root{
-      --primary:#8f1d22;
-      --primary-dark:#681318;
-      --accent:#d8a23d;
-      --bg:#f4f1ec;
-      --card:#ffffff;
-      --text:#241f1d;
-      --muted:#746b66;
-      --border:#ded7d1;
-      --danger:#b42318;
-      --success:#157347;
-      --shadow:0 12px 35px rgba(54,35,24,.12);
-    }
-
-    *{box-sizing:border-box}
-
-    body{
-      margin:0;
-      font-family:Inter,Segoe UI,Arial,sans-serif;
-      background:var(--bg);
-      color:var(--text);
-      min-height:100vh;
-    }
-
-    button,input{font:inherit}
-
-    .hidden{display:none!important}
-
-    /* LOGIN */
-    .login-screen{
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:24px;
-      background:
-        radial-gradient(circle at top left, rgba(216,162,61,.18), transparent 30%),
-        linear-gradient(135deg,#f7f3ee 0%,#eee6dd 100%);
-    }
-
-    .login-box{
-      width:min(100%,1050px);
-      background:rgba(255,255,255,.92);
-      border:1px solid rgba(255,255,255,.7);
-      border-radius:28px;
-      box-shadow:var(--shadow);
-      padding:34px;
-      backdrop-filter:blur(8px);
-    }
-
-    .brand{
-      text-align:center;
-      margin-bottom:28px;
-    }
-
-    .brand-badge{
-      width:72px;
-      height:72px;
-      margin:0 auto 14px;
-      border-radius:22px;
-      display:grid;
-      place-items:center;
-      color:white;
-      font-size:34px;
-      background:linear-gradient(145deg,var(--primary),var(--primary-dark));
-      box-shadow:0 10px 25px rgba(143,29,34,.25);
-    }
-
-    .brand h1{
-      margin:0;
-      font-size:clamp(28px,4vw,44px);
-      letter-spacing:-1px;
-    }
-
-    .brand p{
-      margin:8px 0 0;
-      color:var(--muted);
-      font-size:17px;
-    }
-
-    .profiles{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
-      gap:18px;
-    }
-
-    .profile-card{
-      border:2px solid transparent;
-      background:var(--card);
-      border-radius:22px;
-      padding:20px;
-      cursor:pointer;
-      transition:.2s ease;
-      text-align:center;
-      box-shadow:0 7px 20px rgba(48,32,23,.08);
-    }
-
-    .profile-card:hover{
-      transform:translateY(-4px);
-      border-color:rgba(143,29,34,.35);
-    }
-
-    .profile-card.selected{
-      border-color:var(--primary);
-      box-shadow:0 10px 28px rgba(143,29,34,.18);
-    }
-
-    .avatar{
-      width:102px;
-      height:102px;
-      margin:0 auto 14px;
-      border-radius:50%;
-      display:grid;
-      place-items:center;
-      font-size:42px;
-      font-weight:800;
-      color:white;
-      background:linear-gradient(145deg,#a8373c,#6d1519);
-      border:5px solid #f3e6e6;
-      overflow:hidden;
-    }
-
-    .avatar img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-    }
-
-    .profile-card h3{
-      margin:0;
-      font-size:20px;
-    }
-
-    .profile-card span{
-      display:inline-block;
-      margin-top:7px;
-      padding:5px 10px;
-      border-radius:999px;
-      background:#f4ebe7;
-      color:var(--primary-dark);
-      font-size:13px;
-      font-weight:700;
-    }
-
-    .pin-panel{
-      width:min(100%,420px);
-      margin:28px auto 0;
-      padding-top:24px;
-      border-top:1px solid var(--border);
-      text-align:center;
-    }
-
-    .selected-user{
-      font-weight:800;
-      margin-bottom:12px;
-    }
-
-    .pin-dots{
-      display:flex;
-      justify-content:center;
-      gap:12px;
-      margin:16px 0 22px;
-    }
-
-    .pin-dot{
-      width:16px;
-      height:16px;
-      border-radius:50%;
-      background:#d7cfca;
-    }
-
-    .pin-dot.filled{background:var(--primary)}
-
-    .keypad{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:10px;
-      max-width:310px;
-      margin:0 auto;
-    }
-
-    .key{
-      border:none;
-      min-height:58px;
-      border-radius:16px;
-      background:#f2ece7;
-      color:var(--text);
-      font-size:22px;
-      font-weight:800;
-      cursor:pointer;
-      transition:.15s;
-    }
-
-    .key:hover{background:#e8ddd5}
-    .key.action{font-size:16px;color:var(--primary-dark)}
-    .key.enter{background:var(--primary);color:white}
-    .key.enter:hover{background:var(--primary-dark)}
-
-    .login-error{
-      min-height:22px;
-      margin-top:14px;
-      color:var(--danger);
-      font-weight:700;
-    }
-
-    /* APP */
-    .app{
-      min-height:100vh;
-      display:grid;
-      grid-template-columns:260px 1fr;
-    }
-
-    .sidebar{
-      background:#251d1a;
-      color:white;
-      padding:22px 16px;
-      display:flex;
-      flex-direction:column;
-      gap:18px;
-    }
-
-    .side-brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      padding:8px 10px 18px;
-      border-bottom:1px solid rgba(255,255,255,.1);
-    }
-
-    .side-logo{
-      width:46px;
-      height:46px;
-      border-radius:14px;
-      display:grid;
-      place-items:center;
-      background:var(--primary);
-      font-size:22px;
-    }
-
-    .side-brand strong{font-size:18px}
-    .side-brand small{display:block;color:#c7bbb5;margin-top:3px}
-
-    .menu{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-    }
-
-    .menu button{
-      border:none;
-      background:transparent;
-      color:#e8dfda;
-      text-align:left;
-      padding:13px 14px;
-      border-radius:13px;
-      cursor:pointer;
-      font-weight:700;
-    }
-
-    .menu button:hover,
-    .menu button.active{
-      background:rgba(255,255,255,.1);
-      color:white;
-    }
-
-    .side-user{
-      margin-top:auto;
-      display:flex;
-      align-items:center;
-      gap:12px;
-      padding:12px;
-      background:rgba(255,255,255,.07);
-      border-radius:16px;
-    }
-
-    .mini-avatar{
-      width:42px;
-      height:42px;
-      border-radius:50%;
-      display:grid;
-      place-items:center;
-      background:var(--primary);
-      font-weight:900;
-    }
-
-    .side-user small{display:block;color:#c9bdb7;margin-top:2px}
-
-    .logout{
-      border:none;
-      color:white;
-      background:#4a3530;
-      padding:11px 14px;
-      border-radius:12px;
-      cursor:pointer;
-    }
-
-    .content{
-      padding:26px;
-      overflow:auto;
-    }
-
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:20px;
-      margin-bottom:24px;
-    }
-
-    .topbar h2{
-      margin:0;
-      font-size:30px;
-    }
-
-    .topbar p{
-      margin:6px 0 0;
-      color:var(--muted);
-    }
-
-    .date-chip{
-      background:white;
-      padding:11px 15px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      font-weight:700;
-    }
-
-    .stats{
-      display:grid;
-      grid-template-columns:repeat(4,minmax(150px,1fr));
-      gap:16px;
-      margin-bottom:22px;
-    }
-
-    .stat{
-      background:white;
-      padding:20px;
-      border-radius:18px;
-      border:1px solid var(--border);
-      box-shadow:0 6px 20px rgba(55,38,28,.05);
-    }
-
-    .stat small{color:var(--muted);font-weight:700}
-    .stat strong{display:block;font-size:28px;margin-top:8px}
-    .stat span{display:block;margin-top:6px;font-size:13px;color:var(--success)}
-
-    .panel{
-      background:white;
-      border:1px solid var(--border);
-      border-radius:20px;
-      padding:22px;
-      box-shadow:0 7px 22px rgba(55,38,28,.05);
-    }
-
-    .panel h3{margin:0 0 8px;font-size:22px}
-    .panel p{margin:0;color:var(--muted);line-height:1.5}
-
-    .quick-actions{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:16px;
-      margin-top:18px;
-    }
-
-    .quick{
-      border:1px solid var(--border);
-      background:#fbf8f5;
-      border-radius:17px;
-      padding:20px;
-      cursor:pointer;
-      text-align:left;
-    }
-
-    .quick:hover{border-color:var(--primary)}
-    .quick b{display:block;font-size:18px;margin-bottom:7px}
-    .quick span{color:var(--muted);font-size:14px}
-
-
-
-    .client-form{
-      display:grid;
-      grid-template-columns:1.4fr 1fr auto;
-      gap:14px;
-      align-items:end;
-      margin-top:20px;
-    }
-
-    .field label{
-      display:block;
-      margin-bottom:7px;
-      font-size:14px;
-      font-weight:800;
-      color:var(--text);
-    }
-
-    .field label span{
-      color:var(--danger);
-    }
-
-    .field input{
-      width:100%;
-      min-height:50px;
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:0 15px;
-      background:#fff;
-      outline:none;
-      transition:.15s;
-    }
-
-    .field input:focus{
-      border-color:var(--primary);
-      box-shadow:0 0 0 3px rgba(143,29,34,.10);
-    }
-
-    .primary-btn{
-      min-height:50px;
-      border:none;
-      border-radius:14px;
-      padding:0 20px;
-      background:var(--primary);
-      color:white;
-      font-weight:800;
-      cursor:pointer;
-    }
-
-    .primary-btn:hover{background:var(--primary-dark)}
-
-    .form-message{
-      min-height:22px;
-      margin-top:12px;
-      font-weight:700;
-    }
-
-    .form-message.error{color:var(--danger)}
-    .form-message.success{color:var(--success)}
-
-    .clients-toolbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:14px;
-      margin:26px 0 12px;
-    }
-
-    .clients-toolbar h4{
-      margin:0;
-      font-size:18px;
-    }
-
-    .clients-count{
-      color:var(--muted);
-      font-weight:700;
-    }
-
-    .clients-list{
-      display:grid;
-      gap:10px;
-    }
-
-    .client-row{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:14px;
-      padding:15px 16px;
-      border:1px solid var(--border);
-      border-radius:15px;
-      background:#fbf9f7;
-    }
-
-    .client-row strong{display:block}
-    .client-row small{display:block;color:var(--muted);margin-top:4px}
-
-    .empty-clients{
-      padding:28px;
-      text-align:center;
-      border:2px dashed var(--border);
-      border-radius:16px;
-      color:var(--muted);
-    }
-
-    .module-placeholder{
-      padding:38px;
-      text-align:center;
-      border:2px dashed var(--border);
-      border-radius:18px;
-      margin-top:18px;
-      color:var(--muted);
-    }
-
-    @media(max-width:900px){
-      .app{grid-template-columns:82px 1fr}
-      .side-brand strong,.side-brand small,.menu button span,.side-user div,.logout{display:none}
-      .side-brand{justify-content:center;padding-inline:0}
-      .menu button{text-align:center;font-size:20px}
-      .side-user{justify-content:center;padding:10px}
-      .stats{grid-template-columns:repeat(2,1fr)}
-      .quick-actions{grid-template-columns:1fr}
-      .client-form{grid-template-columns:1fr}
-    }
-
-    @media(max-width:620px){
-      .login-box{padding:22px 16px;border-radius:20px}
-      .profiles{grid-template-columns:repeat(2,1fr)}
-      .profile-card{padding:15px 10px}
-      .avatar{width:78px;height:78px;font-size:32px}
-      .app{display:block}
-      .sidebar{
-        position:fixed;
-        left:0;right:0;bottom:0;
-        height:72px;
-        z-index:10;
-        flex-direction:row;
-        align-items:center;
-        padding:8px;
-      }
-      .side-brand,.side-user,.logout{display:none}
-      .menu{
-        width:100%;
-        flex-direction:row;
-        justify-content:space-around;
-      }
-      .menu button{padding:12px}
-      .content{padding:18px 14px 95px}
-      .topbar{align-items:flex-start}
-      .date-chip{display:none}
-      .stats{grid-template-columns:1fr 1fr}
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Carnicería 360°</title>
+<style>
+:root{--p:#8f1d22;--pd:#681318;--gold:#d8a23d;--bg:#f4f1ec;--card:#fff;--ink:#241f1d;--muted:#746b66;--line:#ded7d1;--ok:#157347;--bad:#b42318;--shadow:0 12px 35px rgba(54,35,24,.12)}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}button,input,select,textarea{font:inherit}.hidden{display:none!important}
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at top left,rgba(216,162,61,.18),transparent 30%),linear-gradient(135deg,#f7f3ee,#eee6dd)}
+.login-box{width:min(100%,1050px);background:rgba(255,255,255,.94);border-radius:28px;box-shadow:var(--shadow);padding:34px}.brand{text-align:center;margin-bottom:28px}.brand-badge{width:72px;height:72px;margin:0 auto 14px;border-radius:22px;display:grid;place-items:center;color:#fff;font-size:34px;background:linear-gradient(145deg,var(--p),var(--pd))}.brand h1{margin:0;font-size:clamp(28px,4vw,44px)}.brand p{color:var(--muted)}
+.profiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:18px}.profile-card{border:2px solid transparent;background:#fff;border-radius:22px;padding:20px;cursor:pointer;text-align:center;box-shadow:0 7px 20px rgba(48,32,23,.08)}.profile-card:hover,.profile-card.selected{border-color:var(--p);transform:translateY(-2px)}.avatar{width:102px;height:102px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;font-size:42px;font-weight:800;color:#fff;background:linear-gradient(145deg,#a8373c,#6d1519);border:5px solid #f3e6e6}.profile-card h3{margin:0}.profile-card span{display:inline-block;margin-top:7px;padding:5px 10px;border-radius:999px;background:#f4ebe7;color:var(--pd);font-size:13px;font-weight:700}
+.pin-panel{width:min(100%,420px);margin:28px auto 0;padding-top:24px;border-top:1px solid var(--line);text-align:center}.selected-user{font-weight:800}.pin-dots{display:flex;justify-content:center;gap:12px;margin:16px 0 22px}.pin-dot{width:16px;height:16px;border-radius:50%;background:#d7cfca}.pin-dot.filled{background:var(--p)}.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:310px;margin:auto}.key{border:0;min-height:58px;border-radius:16px;background:#f2ece7;font-size:22px;font-weight:800;cursor:pointer}.key.enter{background:var(--p);color:#fff}.key.action{font-size:15px}.login-error{min-height:22px;margin-top:14px;color:var(--bad);font-weight:700}
+.app{min-height:100vh;display:grid;grid-template-columns:255px 1fr}.sidebar{background:#251d1a;color:#fff;padding:22px 16px;display:flex;flex-direction:column;gap:18px}.side-brand{display:flex;gap:12px;align-items:center;padding:8px 10px 18px;border-bottom:1px solid rgba(255,255,255,.1)}.side-logo{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:var(--p);font-size:22px}.side-brand small,.side-user small{display:block;color:#c7bbb5;margin-top:3px}.menu{display:flex;flex-direction:column;gap:8px}.menu button{border:0;background:transparent;color:#e8dfda;text-align:left;padding:13px 14px;border-radius:13px;cursor:pointer;font-weight:700}.menu button:hover,.menu button.active{background:rgba(255,255,255,.1);color:#fff}.side-user{margin-top:auto;display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,.07);border-radius:16px}.mini-avatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--p);font-weight:900}.logout{border:0;color:#fff;background:#4a3530;padding:11px;border-radius:12px;cursor:pointer}
+.content{padding:26px;overflow:auto}.topbar{display:flex;justify-content:space-between;gap:20px;margin-bottom:24px}.topbar h2{margin:0;font-size:30px}.topbar p{margin:6px 0;color:var(--muted)}.date-chip{background:#fff;padding:11px 15px;border-radius:12px;border:1px solid var(--line);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:16px;margin-bottom:22px}.stat,.panel{background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 7px 22px rgba(55,38,28,.05)}.stat{padding:20px}.stat small{color:var(--muted);font-weight:700}.stat strong{display:block;font-size:28px;margin-top:8px}.stat span{font-size:13px;color:var(--ok)}.panel{padding:22px}.panel h3{margin:0 0 8px}.panel>p{margin:0 0 18px;color:var(--muted)}
+.quick-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.quick{border:1px solid var(--line);background:#fbf8f5;border-radius:17px;padding:20px;text-align:left;cursor:pointer}.quick b{display:block;font-size:18px;margin-bottom:7px}.quick span{color:var(--muted)}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.field{display:flex;flex-direction:column;gap:7px}.field.full{grid-column:1/-1}.field label{font-weight:800}.field label span{color:var(--bad)}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:13px;padding:13px 14px;background:#fff}.field input:focus,.field select:focus{outline:2px solid rgba(143,29,34,.15);border-color:var(--p)}.primary-btn,.secondary-btn,.danger-btn{border:0;border-radius:13px;padding:13px 18px;font-weight:800;cursor:pointer}.primary-btn{background:var(--p);color:#fff}.secondary-btn{background:#eee7e2;color:var(--ink)}.danger-btn{background:#fee4e2;color:var(--bad)}.form-message{min-height:24px;margin:12px 0;font-weight:700}.form-message.success{color:var(--ok)}.form-message.error{color:var(--bad)}
+.clients-toolbar,.section-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-top:24px}.clients-list,.notes-list{display:grid;gap:10px;margin-top:12px}.client-row,.note-row{display:flex;align-items:center;justify-content:space-between;gap:15px;border:1px solid var(--line);border-radius:14px;padding:14px}.client-row small,.note-row small{display:block;color:var(--muted);margin-top:4px}.badge{padding:5px 9px;border-radius:999px;background:#f2ebe6;font-size:12px;font-weight:800}.empty{border:2px dashed var(--line);border-radius:16px;padding:28px;text-align:center;color:var(--muted)}
+.note-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(330px,.85fr);gap:18px}.note-builder,.note-summary{border:1px solid var(--line);border-radius:18px;padding:18px;background:#fff}.note-summary{background:#fbf8f5}.line-grid{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end;margin-top:16px}.items-table{width:100%;border-collapse:collapse;margin-top:18px}.items-table th,.items-table td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left}.items-table th{text-transform:uppercase;font-size:12px;color:var(--muted)}.items-table td.num,.items-table th.num{text-align:right}.remove-item{border:0;background:#fee4e2;color:var(--bad);border-radius:9px;padding:7px 9px;cursor:pointer}.total-box{display:flex;justify-content:space-between;align-items:center;border-top:2px solid var(--line);margin-top:18px;padding-top:16px;font-size:24px;font-weight:900}.note-actions{display:flex;gap:10px;margin-top:18px}.note-actions button{flex:1}.folio-preview{padding:12px;border-radius:12px;background:#f0e6e2;font-weight:800;margin-bottom:14px}
+.price-toolbar{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;margin-bottom:18px}.price-table{width:100%;border-collapse:collapse}.price-table th,.price-table td{padding:12px 9px;border-bottom:1px solid var(--line)}.price-table th{text-align:left;color:var(--muted);font-size:12px;text-transform:uppercase}.price-table input{width:130px;border:1px solid var(--line);border-radius:10px;padding:9px}.price-source{font-size:12px;color:var(--muted);display:block;margin-top:4px}
+@media(max-width:950px){.app{grid-template-columns:82px 1fr}.side-brand strong,.side-brand small,.menu button span,.side-user div,.logout{display:none}.menu button{text-align:center}.stats{grid-template-columns:repeat(2,1fr)}.note-layout{grid-template-columns:1fr}.quick-actions{grid-template-columns:1fr}.line-grid{grid-template-columns:1fr 1fr}.line-grid .product-field{grid-column:1/-1}}
+@media(max-width:620px){.login-box{padding:22px 16px}.profiles{grid-template-columns:repeat(2,1fr)}.avatar{width:78px;height:78px}.app{display:block}.sidebar{position:fixed;left:0;right:0;bottom:0;height:72px;z-index:10;flex-direction:row;padding:8px}.side-brand,.side-user,.logout{display:none}.menu{width:100%;flex-direction:row;justify-content:space-around}.menu button{padding:12px}.menu button:nth-child(n+6){display:none}.content{padding:18px 14px 95px}.date-chip{display:none}.stats,.form-grid{grid-template-columns:1fr}.line-grid{grid-template-columns:1fr}.line-grid .product-field{grid-column:auto}.price-toolbar{grid-template-columns:1fr}.price-table{font-size:13px}.price-table input{width:100px}}
+</style>
 </head>
 <body>
-
-  <section id="loginScreen" class="login-screen">
-    <div class="login-box">
-      <div class="brand">
-        <div class="brand-badge">🥩</div>
-        <h1>Carnicería 360°</h1>
-        <p>Selecciona tu fotografía para ingresar</p>
+<section id="loginScreen" class="login-screen">
+  <div class="login-box">
+    <div class="brand"><div class="brand-badge">🥩</div><h1>Carnicería 360°</h1><p>Selecciona tu perfil para ingresar</p></div>
+    <div id="profiles" class="profiles"></div>
+    <div id="pinPanel" class="pin-panel hidden">
+      <div id="selectedUserText" class="selected-user"></div>
+      <div class="pin-dots"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
+      <div class="keypad">
+        <button class="key" data-number="1">1</button><button class="key" data-number="2">2</button><button class="key" data-number="3">3</button>
+        <button class="key" data-number="4">4</button><button class="key" data-number="5">5</button><button class="key" data-number="6">6</button>
+        <button class="key" data-number="7">7</button><button class="key" data-number="8">8</button><button class="key" data-number="9">9</button>
+        <button class="key action" id="clearPin">Limpiar</button><button class="key" data-number="0">0</button><button class="key enter" id="enterBtn">Entrar</button>
       </div>
+      <div id="loginError" class="login-error"></div>
+    </div>
+  </div>
+</section>
 
-      <div id="profiles" class="profiles"></div>
+<section id="appScreen" class="app hidden">
+<aside class="sidebar">
+  <div class="side-brand"><div class="side-logo">🥩</div><div><strong>Carnicería 360°</strong><small>Punto de venta</small></div></div>
+  <nav class="menu">
+    <button class="active" data-module="inicio">🏠 <span>Inicio</span></button>
+    <button data-module="nueva-nota">🧾 <span>Nota a crédito</span></button>
+    <button data-module="clientes">👥 <span>Clientes</span></button>
+    <button data-module="precios">💲 <span>Precios</span></button>
+    <button data-module="historial">📚 <span>Historial</span></button>
+  </nav>
+  <div class="side-user"><div id="miniAvatar" class="mini-avatar">E</div><div><strong id="sideUserName"></strong><small id="sideUserRole"></small></div></div>
+  <button id="logoutBtn" class="logout">Cerrar sesión</button>
+</aside>
 
-      <div id="pinPanel" class="pin-panel hidden">
-        <div id="selectedUserText" class="selected-user"></div>
-        <div class="pin-dots">
-          <div class="pin-dot"></div>
-          <div class="pin-dot"></div>
-          <div class="pin-dot"></div>
-          <div class="pin-dot"></div>
+<main class="content">
+  <div class="topbar"><div><h2 id="moduleTitle">Inicio</h2><p id="welcomeText">Bienvenido.</p></div><div id="currentDate" class="date-chip"></div></div>
+
+  <div id="dashboardContent">
+    <section class="stats">
+      <div class="stat"><small>Crédito vendido</small><strong id="statSales">$0.00</strong><span>Total registrado</span></div>
+      <div class="stat"><small>Notas generadas</small><strong id="statNotes">0</strong><span>Guardadas</span></div>
+      <div class="stat"><small>Clientes activos</small><strong id="statClients">0</strong><span>Registrados</span></div>
+      <div class="stat"><small>Productos</small><strong id="statProducts">0</strong><span>Con precio general</span></div>
+    </section>
+    <section class="panel">
+      <h3>Acciones rápidas</h3><p>Captura notas a crédito y configura precios diferentes para cada cliente.</p>
+      <div class="quick-actions">
+        <button class="quick" data-go="nueva-nota"><b>🧾 Tomar nota a crédito</b><span>Selecciona cliente, producto, kilos y precio.</span></button>
+        <button class="quick" data-go="clientes"><b>👥 Dar de alta cliente</b><span>Nombre obligatorio y teléfono opcional.</span></button>
+        <button class="quick" data-go="precios"><b>💲 Ajustar precios</b><span>Define un precio especial por cliente y producto.</span></button>
+      </div>
+    </section>
+  </div>
+
+  <section id="moduleContent" class="panel hidden">
+    <h3 id="moduleHeading"></h3><p id="moduleDescription"></p>
+
+    <div id="clientsModule" class="hidden">
+      <form id="clientForm" class="form-grid" novalidate>
+        <div class="field"><label>Nombre del cliente <span>*</span></label><input id="clientName" autocomplete="off" placeholder="Ej. Carnicería San José"></div>
+        <div class="field"><label>Número de teléfono <small>(opcional)</small></label><input id="clientPhone" type="tel" inputmode="tel" placeholder="Ej. 4621234567"></div>
+        <div class="field full"><button class="primary-btn" type="submit">Guardar cliente</button></div>
+      </form>
+      <div id="clientMessage" class="form-message"></div>
+      <div class="clients-toolbar"><h4>Clientes registrados</h4><span id="clientsCount" class="badge"></span></div>
+      <div id="clientsList" class="clients-list"></div>
+    </div>
+
+    <div id="noteModule" class="hidden">
+      <div class="note-layout">
+        <div class="note-builder">
+          <div class="field"><label>Cliente <span>*</span></label><select id="noteClient"></select></div>
+          <div class="line-grid">
+            <div class="field product-field"><label>Producto</label><select id="noteProduct"></select></div>
+            <div class="field"><label>Kilos / cantidad</label><input id="noteQty" type="number" inputmode="decimal" min="0" step="0.001" placeholder="0.000"></div>
+            <div class="field"><label>Precio</label><input id="notePrice" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"><small id="priceSource" class="price-source"></small></div>
+            <button id="addItemBtn" class="primary-btn" type="button">Agregar</button>
+          </div>
+          <div id="noteMessage" class="form-message"></div>
+          <div style="overflow:auto">
+            <table class="items-table">
+              <thead><tr><th>Producto</th><th class="num">Cantidad</th><th class="num">Precio</th><th class="num">Importe</th><th></th></tr></thead>
+              <tbody id="noteItemsBody"></tbody>
+            </table>
+          </div>
         </div>
-
-        <div class="keypad">
-          <button class="key" data-number="1">1</button>
-          <button class="key" data-number="2">2</button>
-          <button class="key" data-number="3">3</button>
-          <button class="key" data-number="4">4</button>
-          <button class="key" data-number="5">5</button>
-          <button class="key" data-number="6">6</button>
-          <button class="key" data-number="7">7</button>
-          <button class="key" data-number="8">8</button>
-          <button class="key" data-number="9">9</button>
-          <button class="key action" id="clearPin">Limpiar</button>
-          <button class="key" data-number="0">0</button>
-          <button class="key enter" id="enterBtn">Entrar</button>
+        <div class="note-summary">
+          <div id="folioPreview" class="folio-preview"></div>
+          <div class="field"><label>Observaciones <small>(opcional)</small></label><textarea id="noteObservations" rows="4" placeholder="Indicaciones de entrega, corte, empaque, etc."></textarea></div>
+          <div class="total-box"><span>Total</span><span id="noteTotal">$0.00</span></div>
+          <div class="note-actions"><button id="clearNoteBtn" class="secondary-btn" type="button">Limpiar</button><button id="saveNoteBtn" class="primary-btn" type="button">Guardar crédito</button></div>
         </div>
-
-        <div id="loginError" class="login-error"></div>
       </div>
     </div>
+
+    <div id="pricesModule" class="hidden">
+      <div class="price-toolbar">
+        <div class="field"><label>Cliente para ajustar precios</label><select id="priceClient"></select></div>
+        <button id="savePricesBtn" class="primary-btn">Guardar precios</button>
+      </div>
+      <div id="priceMessage" class="form-message"></div>
+      <div style="overflow:auto">
+        <table class="price-table"><thead><tr><th>Producto</th><th>Precio general</th><th>Precio especial del cliente</th></tr></thead><tbody id="priceTableBody"></tbody></table>
+      </div>
+    </div>
+
+    <div id="historyModule" class="hidden">
+      <div id="notesList" class="notes-list"></div>
+    </div>
   </section>
-
-  <section id="appScreen" class="app hidden">
-    <aside class="sidebar">
-      <div class="side-brand">
-        <div class="side-logo">🥩</div>
-        <div>
-          <strong>Carnicería 360°</strong>
-          <small>Punto de venta</small>
-        </div>
-      </div>
-
-      <nav class="menu">
-        <button class="active" data-module="inicio">🏠 <span>Inicio</span></button>
-        <button data-module="nueva-nota">🧾 <span>Nueva nota</span></button>
-        <button data-module="clientes">👥 <span>Clientes</span></button>
-        <button data-module="productos">🥩 <span>Productos</span></button>
-        <button data-module="precios">💲 <span>Precios</span></button>
-        <button data-module="historial">📚 <span>Historial</span></button>
-        <button data-module="reportes">📊 <span>Reportes</span></button>
-      </nav>
-
-      <div class="side-user">
-        <div id="miniAvatar" class="mini-avatar">E</div>
-        <div>
-          <strong id="sideUserName">Empleado</strong>
-          <small id="sideUserRole">Vendedor</small>
-        </div>
-      </div>
-
-      <button id="logoutBtn" class="logout">Cerrar sesión</button>
-    </aside>
-
-    <main class="content">
-      <div class="topbar">
-        <div>
-          <h2 id="moduleTitle">Inicio</h2>
-          <p id="welcomeText">Bienvenido al sistema.</p>
-        </div>
-        <div id="currentDate" class="date-chip"></div>
-      </div>
-
-      <div id="dashboardContent">
-        <section class="stats">
-          <div class="stat">
-            <small>Ventas de hoy</small>
-            <strong>$0.00</strong>
-            <span>Listo para registrar</span>
-          </div>
-          <div class="stat">
-            <small>Notas generadas</small>
-            <strong>0</strong>
-            <span>Hoy</span>
-          </div>
-          <div class="stat">
-            <small>Clientes activos</small>
-            <strong>0</strong>
-            <span>Base inicial</span>
-          </div>
-          <div class="stat">
-            <small>Crédito pendiente</small>
-            <strong>$0.00</strong>
-            <span>Sin movimientos</span>
-          </div>
-        </section>
-
-        <section class="panel">
-          <h3>Acciones rápidas</h3>
-          <p>Esta es la base inicial. Los siguientes módulos se conectarán a productos, clientes y listas de precios.</p>
-
-          <div class="quick-actions">
-            <button class="quick" data-go="nueva-nota">
-              <b>🧾 Crear nueva nota</b>
-              <span>Capturar productos, kilos, precios y forma de pago.</span>
-            </button>
-            <button class="quick" data-go="clientes">
-              <b>👥 Registrar cliente</b>
-              <span>Asignar lista de precios, crédito y datos de contacto.</span>
-            </button>
-            <button class="quick" data-go="precios">
-              <b>💲 Configurar precios</b>
-              <span>Precio general, lista y precio especial por cliente.</span>
-            </button>
-          </div>
-        </section>
-      </div>
-
-      <section id="moduleContent" class="panel hidden">
-        <h3 id="placeholderTitle"></h3>
-        <p id="placeholderText"></p>
-
-        <div id="clientsModule" class="hidden">
-          <form id="clientForm" class="client-form" novalidate>
-            <div class="field">
-              <label for="clientName">Nombre del cliente <span>*</span></label>
-              <input id="clientName" type="text" autocomplete="off" placeholder="Ej. Carnicería San José" />
-            </div>
-
-            <div class="field">
-              <label for="clientPhone">Número de teléfono <small>(opcional)</small></label>
-              <input id="clientPhone" type="tel" inputmode="tel" autocomplete="off" placeholder="Ej. 4621234567" />
-            </div>
-
-            <button class="primary-btn" type="submit">Guardar cliente</button>
-          </form>
-
-          <div id="clientMessage" class="form-message"></div>
-
-          <div class="clients-toolbar">
-            <h4>Clientes registrados</h4>
-            <div id="clientsCount" class="clients-count">0 clientes</div>
-          </div>
-          <div id="clientsList" class="clients-list"></div>
-        </div>
-
-        <div id="genericPlaceholder" class="module-placeholder">
-          Este módulo se agregará en la siguiente etapa sobre esta misma base.
-        </div>
-      </section>
-    </main>
-  </section>
-
-  <script>
-    const DEFAULT_USERS = [
-      {
-        id: 1,
-        name: "Eduardo",
-        role: "Administrador",
-        pin: "1234",
-        initials: "E",
-        photo: ""
-      },
-      {
-        id: 2,
-        name: "José",
-        role: "Encargado",
-        pin: "2222",
-        initials: "J",
-        photo: ""
-      },
-      {
-        id: 3,
-        name: "Mariana",
-        role: "Vendedor",
-        pin: "3333",
-        initials: "M",
-        photo: ""
-      }
-    ];
-
-    const state = {
-      selectedUser: null,
-      pin: "",
-      users: JSON.parse(localStorage.getItem("carniceria360_users")) || DEFAULT_USERS,
-      clients: JSON.parse(localStorage.getItem("carniceria360_clients")) || []
-    };
-
-    const loginScreen = document.getElementById("loginScreen");
-    const appScreen = document.getElementById("appScreen");
-    const profiles = document.getElementById("profiles");
-    const pinPanel = document.getElementById("pinPanel");
-    const selectedUserText = document.getElementById("selectedUserText");
-    const loginError = document.getElementById("loginError");
-    const pinDots = [...document.querySelectorAll(".pin-dot")];
-
-    function saveUsers(){
-      localStorage.setItem("carniceria360_users", JSON.stringify(state.users));
-    }
-
-
-    function saveClients(){
-      localStorage.setItem("carniceria360_clients", JSON.stringify(state.clients));
-    }
-
-    function escapeHtml(value){
-      return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    function renderClients(){
-      const list = document.getElementById("clientsList");
-      const count = document.getElementById("clientsCount");
-      if(!list || !count) return;
-
-      count.textContent = `${state.clients.length} ${state.clients.length === 1 ? "cliente" : "clientes"}`;
-
-      if(state.clients.length === 0){
-        list.innerHTML = '<div class="empty-clients">Todavía no hay clientes registrados.</div>';
-        return;
-      }
-
-      list.innerHTML = [...state.clients]
-        .sort((a,b) => a.name.localeCompare(b.name, "es"))
-        .map(client => `
-          <div class="client-row">
-            <div>
-              <strong>${escapeHtml(client.name)}</strong>
-              <small>${client.phone ? `Tel. ${escapeHtml(client.phone)}` : "Sin número registrado"}</small>
-            </div>
-          </div>
-        `).join("");
-    }
-
-    function registerClient(event){
-      event.preventDefault();
-
-      const nameInput = document.getElementById("clientName");
-      const phoneInput = document.getElementById("clientPhone");
-      const message = document.getElementById("clientMessage");
-      const name = nameInput.value.trim();
-      const phone = phoneInput.value.trim();
-
-      message.className = "form-message";
-      message.textContent = "";
-
-      if(!name){
-        message.classList.add("error");
-        message.textContent = "El nombre del cliente es obligatorio.";
-        nameInput.focus();
-        return;
-      }
-
-      const duplicate = state.clients.some(client =>
-        client.name.trim().toLowerCase() === name.toLowerCase()
-      );
-
-      if(duplicate){
-        message.classList.add("error");
-        message.textContent = "Ya existe un cliente con ese nombre.";
-        nameInput.focus();
-        return;
-      }
-
-      state.clients.push({
-        id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
-        name,
-        phone,
-        createdAt: new Date().toISOString()
-      });
-
-      saveClients();
-      renderClients();
-      event.target.reset();
-      message.classList.add("success");
-      message.textContent = "Cliente guardado correctamente.";
-      nameInput.focus();
-    }
-
-    function renderProfiles(){
-      profiles.innerHTML = state.users
-        .filter(user => user.active !== false)
-        .map(user => `
-          <button class="profile-card" data-user-id="${user.id}">
-            <div class="avatar">
-              ${user.photo
-                ? `<img src="${user.photo}" alt="${user.name}">`
-                : user.initials}
-            </div>
-            <h3>${user.name}</h3>
-            <span>${user.role}</span>
-          </button>
-        `).join("");
-
-      document.querySelectorAll(".profile-card").forEach(card => {
-        card.addEventListener("click", () => selectUser(Number(card.dataset.userId)));
-      });
-    }
-
-    function selectUser(userId){
-      state.selectedUser = state.users.find(user => user.id === userId);
-      state.pin = "";
-      updatePinDots();
-      loginError.textContent = "";
-      pinPanel.classList.remove("hidden");
-      selectedUserText.textContent = `PIN de ${state.selectedUser.name}`;
-
-      document.querySelectorAll(".profile-card").forEach(card => {
-        card.classList.toggle("selected", Number(card.dataset.userId) === userId);
-      });
-
-      pinPanel.scrollIntoView({behavior:"smooth", block:"center"});
-    }
-
-    function updatePinDots(){
-      pinDots.forEach((dot,index) => {
-        dot.classList.toggle("filled", index < state.pin.length);
-      });
-    }
-
-    function addPinNumber(number){
-      if(!state.selectedUser) return;
-      if(state.pin.length >= 4) return;
-      state.pin += number;
-      loginError.textContent = "";
-      updatePinDots();
-
-      if(state.pin.length === 4){
-        setTimeout(login, 120);
-      }
-    }
-
-    function login(){
-      if(!state.selectedUser){
-        loginError.textContent = "Selecciona primero un perfil.";
-        return;
-      }
-
-      if(state.pin.length !== 4){
-        loginError.textContent = "Captura los cuatro números del PIN.";
-        return;
-      }
-
-      if(state.pin !== state.selectedUser.pin){
-        loginError.textContent = "PIN incorrecto.";
-        state.pin = "";
-        updatePinDots();
-        return;
-      }
-
-      sessionStorage.setItem("carniceria360_session", JSON.stringify({
-        userId: state.selectedUser.id,
-        loginAt: new Date().toISOString()
-      }));
-
-      openApp(state.selectedUser);
-    }
-
-    function openApp(user){
-      loginScreen.classList.add("hidden");
-      appScreen.classList.remove("hidden");
-
-      document.getElementById("sideUserName").textContent = user.name;
-      document.getElementById("sideUserRole").textContent = user.role;
-      document.getElementById("miniAvatar").textContent = user.initials;
-      document.getElementById("welcomeText").textContent =
-        `Bienvenido, ${user.name}. Sesión iniciada como ${user.role}.`;
-
-      showModule("inicio");
-    }
-
-    function logout(){
-      sessionStorage.removeItem("carniceria360_session");
-      state.selectedUser = null;
-      state.pin = "";
-      updatePinDots();
-
-      appScreen.classList.add("hidden");
-      loginScreen.classList.remove("hidden");
-      pinPanel.classList.add("hidden");
-
-      document.querySelectorAll(".profile-card").forEach(card => {
-        card.classList.remove("selected");
-      });
-    }
-
-    const moduleInfo = {
-      "inicio":{
-        title:"Inicio",
-        text:"Resumen general del punto de venta."
-      },
-      "nueva-nota":{
-        title:"Nueva nota",
-        text:"Aquí construiremos la captura de productos, cantidades, precios personalizados y forma de pago."
-      },
-      "clientes":{
-        title:"Clientes",
-        text:"Aquí se registrarán clientes, crédito, saldo y lista de precios asignada."
-      },
-      "productos":{
-        title:"Productos",
-        text:"Aquí se administrarán productos, categorías, unidades y precio general."
-      },
-      "precios":{
-        title:"Listas de precios",
-        text:"Aquí se configurarán precios generales, listas y excepciones por cliente."
-      },
-      "historial":{
-        title:"Historial de notas",
-        text:"Consulta de ventas, reimpresión, cancelaciones y movimientos por empleado."
-      },
-      "reportes":{
-        title:"Reportes",
-        text:"Ventas por día, empleado, cliente, producto y cuentas por cobrar."
-      }
-    };
-
-    function showModule(module){
-      const info = moduleInfo[module];
-      document.getElementById("moduleTitle").textContent = info.title;
-
-      document.querySelectorAll(".menu button").forEach(button => {
-        button.classList.toggle("active", button.dataset.module === module);
-      });
-
-      const dashboard = document.getElementById("dashboardContent");
-      const moduleContent = document.getElementById("moduleContent");
-
-      if(module === "inicio"){
-        dashboard.classList.remove("hidden");
-        moduleContent.classList.add("hidden");
-      }else{
-        dashboard.classList.add("hidden");
-        moduleContent.classList.remove("hidden");
-        document.getElementById("placeholderTitle").textContent = info.title;
-        document.getElementById("placeholderText").textContent = info.text;
-
-        const clientsModule = document.getElementById("clientsModule");
-        const genericPlaceholder = document.getElementById("genericPlaceholder");
-        const isClients = module === "clientes";
-
-        clientsModule.classList.toggle("hidden", !isClients);
-        genericPlaceholder.classList.toggle("hidden", isClients);
-
-        if(isClients){
-          renderClients();
-          setTimeout(() => document.getElementById("clientName").focus(), 0);
-        }
-      }
-    }
-
-    document.querySelectorAll("[data-number]").forEach(button => {
-      button.addEventListener("click", () => addPinNumber(button.dataset.number));
-    });
-
-    document.getElementById("clearPin").addEventListener("click", () => {
-      state.pin = "";
-      loginError.textContent = "";
-      updatePinDots();
-    });
-
-    document.getElementById("enterBtn").addEventListener("click", login);
-    document.getElementById("logoutBtn").addEventListener("click", logout);
-    document.getElementById("clientForm").addEventListener("submit", registerClient);
-
-    document.querySelectorAll(".menu button").forEach(button => {
-      button.addEventListener("click", () => showModule(button.dataset.module));
-    });
-
-    document.querySelectorAll("[data-go]").forEach(button => {
-      button.addEventListener("click", () => showModule(button.dataset.go));
-    });
-
-    document.addEventListener("keydown", event => {
-      if(appScreen.classList.contains("hidden")){
-        if(/^[0-9]$/.test(event.key)) addPinNumber(event.key);
-        if(event.key === "Backspace"){
-          state.pin = state.pin.slice(0,-1);
-          updatePinDots();
-        }
-        if(event.key === "Enter") login();
-      }
-    });
-
-    function setCurrentDate(){
-      const now = new Date();
-      document.getElementById("currentDate").textContent =
-        now.toLocaleDateString("es-MX", {
-          weekday:"long",
-          day:"2-digit",
-          month:"long",
-          year:"numeric"
-        });
-    }
-
-    function restoreSession(){
-      const session = JSON.parse(sessionStorage.getItem("carniceria360_session") || "null");
-      if(!session) return;
-
-      const user = state.users.find(item => item.id === session.userId);
-      if(user){
-        state.selectedUser = user;
-        openApp(user);
-      }
-    }
-
-    saveUsers();
-    renderProfiles();
-    setCurrentDate();
-    restoreSession();
-  </script>
+</main>
+</section>
+
+<script>
+const money=new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN"});
+const DEFAULT_USERS=[
+{id:1,name:"Eduardo",role:"Administrador",pin:"1234",initials:"E"},
+{id:2,name:"José",role:"Encargado",pin:"2222",initials:"J"},
+{id:3,name:"Mariana",role:"Vendedor",pin:"3333",initials:"M"}];
+const DEFAULT_PRODUCTS=[
+{id:"bistec",name:"Bistec",price:250},
+{id:"costilla",name:"Costilla",price:200},
+{id:"cocido",name:"Carne para cocido",price:200},
+{id:"molida",name:"Carne molida",price:250},
+{id:"deshebrar",name:"Carne para deshebrar",price:250},
+{id:"pecho",name:"Pecho",price:250},
+{id:"diezmillo",name:"Diezmillo",price:250},
+{id:"chambarete",name:"Chambarete",price:200},
+{id:"ribeye",name:"Rib Eye",price:410},
+{id:"sirloin",name:"Sirloin",price:270}];
+
+const state={
+selectedUser:null,pin:"",
+users:JSON.parse(localStorage.getItem("c360_users"))||DEFAULT_USERS,
+clients:JSON.parse(localStorage.getItem("carniceria360_clients"))||[],
+products:JSON.parse(localStorage.getItem("c360_products"))||DEFAULT_PRODUCTS,
+clientPrices:JSON.parse(localStorage.getItem("c360_client_prices"))||{},
+notes:JSON.parse(localStorage.getItem("c360_credit_notes"))||[],
+currentItems:[]
+};
+
+const $=id=>document.getElementById(id);
+function save(){localStorage.setItem("c360_users",JSON.stringify(state.users));localStorage.setItem("carniceria360_clients",JSON.stringify(state.clients));localStorage.setItem("c360_products",JSON.stringify(state.products));localStorage.setItem("c360_client_prices",JSON.stringify(state.clientPrices));localStorage.setItem("c360_credit_notes",JSON.stringify(state.notes))}
+function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
+function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random()}
+function folio(){const d=new Date(),p=n=>String(n).padStart(2,"0");return `CR-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`}
+
+function renderProfiles(){
+$("profiles").innerHTML=state.users.map(u=>`<button class="profile-card" data-id="${u.id}"><div class="avatar">${u.initials}</div><h3>${esc(u.name)}</h3><span>${esc(u.role)}</span></button>`).join("");
+document.querySelectorAll(".profile-card").forEach(b=>b.onclick=()=>selectUser(+b.dataset.id))
+}
+function selectUser(id){state.selectedUser=state.users.find(u=>u.id===id);state.pin="";updateDots();$("pinPanel").classList.remove("hidden");$("selectedUserText").textContent=`PIN de ${state.selectedUser.name}`;document.querySelectorAll(".profile-card").forEach(x=>x.classList.toggle("selected",+x.dataset.id===id))}
+function updateDots(){document.querySelectorAll(".pin-dot").forEach((d,i)=>d.classList.toggle("filled",i<state.pin.length))}
+function addPin(n){if(!state.selectedUser||state.pin.length>=4)return;state.pin+=n;updateDots();if(state.pin.length===4)setTimeout(login,100)}
+function login(){if(!state.selectedUser)return;if(state.pin!==state.selectedUser.pin){$("loginError").textContent="PIN incorrecto.";state.pin="";updateDots();return}sessionStorage.setItem("c360_session",state.selectedUser.id);openApp(state.selectedUser)}
+function openApp(u){$("loginScreen").classList.add("hidden");$("appScreen").classList.remove("hidden");$("sideUserName").textContent=u.name;$("sideUserRole").textContent=u.role;$("miniAvatar").textContent=u.initials;$("welcomeText").textContent=`Bienvenido, ${u.name}.`;showModule("inicio");updateStats()}
+function logout(){sessionStorage.removeItem("c360_session");location.reload()}
+
+function registerClient(e){
+e.preventDefault();const name=$("clientName").value.trim(),phone=$("clientPhone").value.trim(),m=$("clientMessage");m.className="form-message";m.textContent="";
+if(!name){m.classList.add("error");m.textContent="El nombre es obligatorio.";return}
+if(state.clients.some(c=>c.name.toLowerCase()===name.toLowerCase())){m.classList.add("error");m.textContent="Ya existe un cliente con ese nombre.";return}
+state.clients.push({id:uid(),name,phone,createdAt:new Date().toISOString()});save();e.target.reset();m.classList.add("success");m.textContent="Cliente guardado correctamente.";renderClients();refreshClientSelects();updateStats()
+}
+function renderClients(){
+$("clientsCount").textContent=`${state.clients.length} cliente${state.clients.length===1?"":"s"}`;
+$("clientsList").innerHTML=state.clients.length?state.clients.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<div class="client-row"><div><strong>${esc(c.name)}</strong><small>${c.phone?`Tel. ${esc(c.phone)}`:"Sin teléfono"}</small></div><span class="badge">Crédito</span></div>`).join(""):`<div class="empty">Todavía no hay clientes registrados.</div>`
+}
+function clientOptions(includeEmpty=true){return (includeEmpty?'<option value="">Selecciona un cliente</option>':'')+state.clients.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")}
+function refreshClientSelects(){const currentNote=$("noteClient").value,currentPrice=$("priceClient").value;$("noteClient").innerHTML=clientOptions();$("priceClient").innerHTML=clientOptions();if(state.clients.some(c=>c.id===currentNote))$("noteClient").value=currentNote;if(state.clients.some(c=>c.id===currentPrice))$("priceClient").value=currentPrice}
+function renderProductSelect(){$("noteProduct").innerHTML=state.products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");updatePriceForLine()}
+function effectivePrice(clientId,productId){const special=state.clientPrices?.[clientId]?.[productId];if(special!==undefined&&special!==null&&special!=="")return {price:Number(special),source:"Precio especial del cliente"};const p=state.products.find(x=>x.id===productId);return {price:Number(p?.price||0),source:"Precio general"}}
+function updatePriceForLine(){const cid=$("noteClient").value,pid=$("noteProduct").value;const ep=effectivePrice(cid,pid);$("notePrice").value=ep.price.toFixed(2);$("priceSource").textContent=cid?ep.source:"Precio general (selecciona cliente)"}
+function addItem(){
+const m=$("noteMessage"),pid=$("noteProduct").value,qty=Number($("noteQty").value),price=Number($("notePrice").value),product=state.products.find(p=>p.id===pid);m.className="form-message";m.textContent="";
+if(!$("noteClient").value){m.classList.add("error");m.textContent="Selecciona primero un cliente.";return}
+if(!product||!qty||qty<=0){m.classList.add("error");m.textContent="Captura una cantidad válida.";return}
+if(price<0||Number.isNaN(price)){m.classList.add("error");m.textContent="Captura un precio válido.";return}
+state.currentItems.push({id:uid(),productId:pid,name:product.name,qty,price,amount:qty*price});$("noteQty").value="";renderCurrentItems();$("noteQty").focus()
+}
+function renderCurrentItems(){
+$("noteItemsBody").innerHTML=state.currentItems.length?state.currentItems.map(i=>`<tr><td>${esc(i.name)}</td><td class="num">${i.qty.toFixed(3)}</td><td class="num">${money.format(i.price)}</td><td class="num">${money.format(i.amount)}</td><td><button class="remove-item" data-remove="${i.id}">✕</button></td></tr>`).join(""):`<tr><td colspan="5" style="text-align:center;color:var(--muted)">Sin productos agregados</td></tr>`;
+document.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{state.currentItems=state.currentItems.filter(i=>i.id!==b.dataset.remove);renderCurrentItems()});
+$("noteTotal").textContent=money.format(state.currentItems.reduce((s,i)=>s+i.amount,0))
+}
+function clearNote(){state.currentItems=[];$("noteClient").value="";$("noteQty").value="";$("noteObservations").value="";$("folioPreview").textContent=`Folio provisional: ${folio()}`;renderCurrentItems();updatePriceForLine()}
+function saveNote(){
+const cid=$("noteClient").value,m=$("noteMessage");m.className="form-message";m.textContent="";
+if(!cid){m.classList.add("error");m.textContent="Selecciona un cliente.";return}
+if(!state.currentItems.length){m.classList.add("error");m.textContent="Agrega al menos un producto.";return}
+const client=state.clients.find(c=>c.id===cid),total=state.currentItems.reduce((s,i)=>s+i.amount,0);
+state.notes.unshift({id:uid(),folio:folio(),clientId:cid,clientName:client.name,userId:state.selectedUser.id,userName:state.selectedUser.name,items:state.currentItems.map(x=>({...x})),observations:$("noteObservations").value.trim(),total,status:"pendiente",createdAt:new Date().toISOString()});
+save();m.classList.add("success");m.textContent="Nota a crédito guardada correctamente.";clearNote();updateStats()
+}
+function renderPrices(){
+const cid=$("priceClient").value;
+$("priceTableBody").innerHTML=state.products.map(p=>{const v=state.clientPrices?.[cid]?.[p.id];return `<tr><td><strong>${esc(p.name)}</strong></td><td>${money.format(p.price)}</td><td><input class="special-price" data-product="${p.id}" type="number" min="0" step="0.01" placeholder="${p.price.toFixed(2)}" value="${v??""}" ${cid?"":"disabled"}></td></tr>`}).join("");
+$("priceMessage").textContent=cid?"Deja vacío para que use el precio general.":"Selecciona un cliente para editar sus precios."; $("priceMessage").className="form-message"
+}
+function savePrices(){
+const cid=$("priceClient").value,m=$("priceMessage");if(!cid){m.className="form-message error";m.textContent="Selecciona un cliente.";return}
+state.clientPrices[cid]=state.clientPrices[cid]||{};
+document.querySelectorAll(".special-price").forEach(inp=>{const v=inp.value.trim();if(v==="")delete state.clientPrices[cid][inp.dataset.product];else state.clientPrices[cid][inp.dataset.product]=Number(v)});
+save();m.className="form-message success";m.textContent="Precios especiales guardados.";if($("noteClient").value===cid)updatePriceForLine()
+}
+function renderHistory(){
+$("notesList").innerHTML=state.notes.length?state.notes.map(n=>`<div class="note-row"><div><strong>${esc(n.folio)} · ${esc(n.clientName)}</strong><small>${new Date(n.createdAt).toLocaleString("es-MX")} · ${n.items.length} producto${n.items.length===1?"":"s"} · Capturó ${esc(n.userName)}</small></div><div style="text-align:right"><strong>${money.format(n.total)}</strong><small>Crédito pendiente</small></div></div>`).join(""):`<div class="empty">Todavía no hay notas a crédito guardadas.</div>`
+}
+function updateStats(){$("statSales").textContent=money.format(state.notes.reduce((s,n)=>s+n.total,0));$("statNotes").textContent=state.notes.length;$("statClients").textContent=state.clients.length;$("statProducts").textContent=state.products.length}
+const moduleInfo={inicio:["Inicio","Resumen general del sistema."],"nueva-nota":["Nota a crédito","Captura productos, cantidades y precios para generar el saldo del cliente."],clientes:["Clientes","Registra clientes con nombre obligatorio y teléfono opcional."],precios:["Ajustar precios","Asigna precios distintos para cada cliente."],historial:["Historial de crédito","Consulta las notas guardadas."]};
+function showModule(mod){
+$("moduleTitle").textContent=moduleInfo[mod][0];document.querySelectorAll(".menu button").forEach(b=>b.classList.toggle("active",b.dataset.module===mod));
+$("dashboardContent").classList.toggle("hidden",mod!=="inicio");$("moduleContent").classList.toggle("hidden",mod==="inicio");
+["clientsModule","noteModule","pricesModule","historyModule"].forEach(id=>$(id).classList.add("hidden"));
+if(mod!=="inicio"){$("moduleHeading").textContent=moduleInfo[mod][0];$("moduleDescription").textContent=moduleInfo[mod][1]}
+if(mod==="clientes"){ $("clientsModule").classList.remove("hidden");renderClients()}
+if(mod==="nueva-nota"){ $("noteModule").classList.remove("hidden");refreshClientSelects();renderProductSelect();$("folioPreview").textContent=`Folio provisional: ${folio()}`;renderCurrentItems()}
+if(mod==="precios"){ $("pricesModule").classList.remove("hidden");refreshClientSelects();renderPrices()}
+if(mod==="historial"){ $("historyModule").classList.remove("hidden");renderHistory()}
+}
+document.querySelectorAll("[data-number]").forEach(b=>b.onclick=()=>addPin(b.dataset.number));$("clearPin").onclick=()=>{state.pin="";updateDots()};$("enterBtn").onclick=login;$("logoutBtn").onclick=logout;
+$("clientForm").onsubmit=registerClient;$("noteClient").onchange=updatePriceForLine;$("noteProduct").onchange=updatePriceForLine;$("addItemBtn").onclick=addItem;$("clearNoteBtn").onclick=clearNote;$("saveNoteBtn").onclick=saveNote;$("priceClient").onchange=renderPrices;$("savePricesBtn").onclick=savePrices;
+document.querySelectorAll(".menu button").forEach(b=>b.onclick=()=>showModule(b.dataset.module));document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>showModule(b.dataset.go));
+document.addEventListener("keydown",e=>{if(!$("loginScreen").classList.contains("hidden")){if(/^\d$/.test(e.key))addPin(e.key);if(e.key==="Enter")login()}});
+$("currentDate").textContent=new Date().toLocaleDateString("es-MX",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+save();renderProfiles();refreshClientSelects();renderProductSelect();renderCurrentItems();updateStats();
+const sid=Number(sessionStorage.getItem("c360_session"));const su=state.users.find(u=>u.id===sid);if(su){state.selectedUser=su;openApp(su)}
+</script>
 </body>
 </html>
