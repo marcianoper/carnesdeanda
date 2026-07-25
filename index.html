@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Carnicería de anda° — Vísceras y Crédito</title>
+<title>Carnicería 360° — Vísceras y Crédito</title>
 <style>
 :root{
   --p:#7d171b;--pd:#571013;--bg:#f3f0ec;--card:#fff;--ink:#241f1d;
@@ -62,6 +62,21 @@ th{font-size:12px;text-transform:uppercase;color:var(--muted)}
 .pdf-table{width:100%;border-collapse:collapse;font-size:11px}.pdf-table th,.pdf-table td{border:1px solid #bbb;padding:6px}.pdf-table th{background:#f4f4f4;color:#111}
 .product-summary{margin-top:18px;page-break-inside:avoid}
 .empty{padding:28px;border:2px dashed var(--line);border-radius:14px;text-align:center;color:var(--muted)}
+
+.inventory-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}
+.inventory-kpi{background:#faf7f4;border:1px solid var(--line);border-radius:15px;padding:14px}
+.inventory-kpi small{display:block;color:var(--muted);font-weight:700;margin-bottom:5px}
+.inventory-kpi strong{font-size:22px}
+.inventory-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+.inventory-tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;font-weight:800;cursor:pointer}
+.inventory-tabs button.active{background:var(--p);color:#fff;border-color:var(--p)}
+.stock-low{color:var(--bad);font-weight:800}
+.stock-ok{color:var(--ok);font-weight:800}
+.inventory-card-list{display:grid;gap:10px}
+.inventory-movement{border:1px solid var(--line);border-radius:14px;padding:13px;background:#fff}
+.inventory-movement-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.inventory-movement-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:7px;color:var(--muted);font-size:13px}
+
 @media (min-width:901px) and (max-width:1180px){
   .app{grid-template-columns:92px minmax(0,1fr)}
   .sidebar{padding:16px 10px}
@@ -83,7 +98,7 @@ th{font-size:12px;text-transform:uppercase;color:var(--muted)}
     z-index:100;display:block
   }
   .brand{display:none}
-  .menu{height:100%;display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+  .menu{height:100%;display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
   .menu button{
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
     min-width:0;padding:5px 2px;border-radius:10px;text-align:center;font-size:20px
@@ -96,6 +111,7 @@ th{font-size:12px;text-transform:uppercase;color:var(--muted)}
   .user-chip{padding:8px 10px;font-size:12px;white-space:nowrap}
   .panel{padding:17px;border-radius:17px;margin-bottom:14px}
   .grid{grid-template-columns:1fr;gap:12px}
+  .inventory-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
   .field.full{grid-column:auto}
   .actions{display:grid;grid-template-columns:1fr 1fr}
   .actions button{width:100%}
@@ -113,6 +129,9 @@ th{font-size:12px;text-transform:uppercase;color:var(--muted)}
   .user-chip{display:none}
   .panel{padding:14px;border-radius:15px}
   .panel h2{font-size:20px}
+  .inventory-kpis{grid-template-columns:1fr 1fr;gap:8px}
+  .inventory-kpi{padding:11px}
+  .inventory-kpi strong{font-size:18px}
   .panel>p{font-size:14px}
   .primary,.secondary,.danger{width:100%}
   .actions{grid-template-columns:1fr}
@@ -181,12 +200,13 @@ th{font-size:12px;text-transform:uppercase;color:var(--muted)}
 <body>
 <div class="app">
   <aside class="sidebar">
-    <div class="brand"><div class="logo">🥩</div><div><strong>Carnicería de anda°</strong><small>Control de crédito</small></div></div>
+    <div class="brand"><div class="logo">🥩</div><div><strong>Carnicería 360°</strong><small>Control de crédito</small></div></div>
     <nav class="menu">
       <button class="active" data-module="notas">🧾 <span>Notas</span></button>
       <button data-module="clientes">👥 <span>Clientes</span></button>
       <button data-module="productos">🥩 <span>Productos</span></button>
       <button data-module="precios">💲 <span>Precios</span></button>
+      <button data-module="inventario">📦 <span>Inventario</span></button>
       <button data-module="resumen">📄 <span>Resumen PDF</span></button>
     </nav>
   </aside>
@@ -243,6 +263,73 @@ th{font-size:12px;text-transform:uppercase;color:var(--muted)}
       <div id="priceMessage" class="message"></div>
     </section>
 
+
+    <section id="inventario" class="module panel hidden">
+      <h2>Inventario de entradas</h2>
+      <p>Registra el producto que llega, quién lo vendió, cuánto costó y cuánto queda disponible.</p>
+
+      <div class="inventory-kpis">
+        <div class="inventory-kpi"><small>Productos con existencia</small><strong id="invProductsCount">0</strong></div>
+        <div class="inventory-kpi"><small>Kilos disponibles</small><strong id="invTotalKg">0.000 kg</strong></div>
+        <div class="inventory-kpi"><small>Piezas disponibles</small><strong id="invTotalPieces">0</strong></div>
+        <div class="inventory-kpi"><small>Valor de compras</small><strong id="invPurchaseValue">$0.00</strong></div>
+      </div>
+
+      <div class="inventory-tabs">
+        <button class="active" data-invtab="entrada">Registrar entrada</button>
+        <button data-invtab="salida">Registrar salida</button>
+        <button data-invtab="existencias">Existencias</button>
+        <button data-invtab="movimientos">Movimientos</button>
+      </div>
+
+      <div id="invEntrada" class="inv-view">
+        <div class="grid">
+          <div class="field"><label>Fecha de llegada</label><input id="invEntryDate" type="date"></div>
+          <div class="field"><label>Proveedor</label><input id="invSupplier" placeholder="Nombre del proveedor"></div>
+          <div class="field"><label>Producto</label><select id="invEntryProduct"></select></div>
+          <div class="field"><label>Unidad</label><select id="invEntryUnit"><option value="kg">Kilogramos</option><option value="pza">Piezas</option></select></div>
+          <div class="field"><label>Cantidad recibida</label><input id="invEntryQty" type="number" step="0.001" min="0"></div>
+          <div class="field"><label>Costo por unidad</label><input id="invEntryCost" type="number" step="0.01" min="0"></div>
+          <div class="field"><label>Lote o referencia</label><input id="invEntryLot" placeholder="Opcional"></div>
+          <div class="field"><label>Factura / nota</label><input id="invEntryRef" placeholder="Opcional"></div>
+          <div class="field full"><label>Observaciones</label><textarea id="invEntryNotes" placeholder="Condición, calidad, temperatura, faltantes..."></textarea></div>
+          <div class="field full"><button id="saveInventoryEntry" class="primary">Guardar entrada</button></div>
+        </div>
+        <div id="invEntryMessage" class="message"></div>
+      </div>
+
+      <div id="invSalida" class="inv-view hidden">
+        <div class="grid">
+          <div class="field"><label>Fecha</label><input id="invExitDate" type="date"></div>
+          <div class="field"><label>Producto</label><select id="invExitProduct"></select></div>
+          <div class="field"><label>Unidad</label><select id="invExitUnit"><option value="kg">Kilogramos</option><option value="pza">Piezas</option></select></div>
+          <div class="field"><label>Cantidad</label><input id="invExitQty" type="number" step="0.001" min="0"></div>
+          <div class="field"><label>Motivo</label><select id="invExitReason"><option>Venta</option><option>Producción</option><option>Merma</option><option>Ajuste</option><option>Devolución</option><option>Otro</option></select></div>
+          <div class="field"><label>Referencia</label><input id="invExitRef" placeholder="Nota, cliente o explicación"></div>
+          <div class="field full"><label>Observaciones</label><textarea id="invExitNotes"></textarea></div>
+          <div class="field full"><button id="saveInventoryExit" class="primary">Guardar salida</button></div>
+        </div>
+        <div id="invExitMessage" class="message"></div>
+      </div>
+
+      <div id="invExistencias" class="inv-view hidden">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Producto</th><th>Unidad</th><th class="num">Entradas</th><th class="num">Salidas</th><th class="num">Disponible</th><th class="num">Costo promedio</th><th class="num">Valor</th></tr></thead>
+            <tbody id="inventoryStockTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="invMovimientos" class="inv-view hidden">
+        <div class="grid" style="margin-bottom:14px">
+          <div class="field"><label>Filtrar por producto</label><select id="invFilterProduct"></select></div>
+          <div class="field"><label>Filtrar por tipo</label><select id="invFilterType"><option value="">Todos</option><option value="entrada">Entradas</option><option value="salida">Salidas</option></select></div>
+        </div>
+        <div id="inventoryMovements" class="inventory-card-list"></div>
+      </div>
+    </section>
+
     <section id="resumen" class="module panel hidden">
       <h2>Resumen general diario en PDF</h2>
       <p>Genera una hoja lista para imprimir o guardar como PDF desde el navegador.</p>
@@ -292,14 +379,23 @@ clients:JSON.parse(localStorage.getItem("c360_clients_pdf"))||[],
 products:JSON.parse(localStorage.getItem("c360_products_pdf"))||DEFAULT_PRODUCTS,
 prices:JSON.parse(localStorage.getItem("c360_prices_pdf"))||{},
 notes:JSON.parse(localStorage.getItem("c360_notes_pdf"))||[],
+inventory:JSON.parse(localStorage.getItem("c360_inventory_moves"))||[],
 items:[]
 };
 const $=id=>document.getElementById(id);
 const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random();
-const save=()=>{localStorage.setItem("c360_clients_pdf",JSON.stringify(state.clients));localStorage.setItem("c360_products_pdf",JSON.stringify(state.products));localStorage.setItem("c360_prices_pdf",JSON.stringify(state.prices));localStorage.setItem("c360_notes_pdf",JSON.stringify(state.notes))};
+const save=()=>{localStorage.setItem("c360_clients_pdf",JSON.stringify(state.clients));localStorage.setItem("c360_products_pdf",JSON.stringify(state.products));localStorage.setItem("c360_prices_pdf",JSON.stringify(state.prices));localStorage.setItem("c360_notes_pdf",JSON.stringify(state.notes));localStorage.setItem("c360_inventory_moves",JSON.stringify(state.inventory))};
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 function clientOptions(){return '<option value="">Selecciona cliente</option>'+state.clients.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")}
-function refreshSelects(){$("noteClient").innerHTML=clientOptions();$("priceClient").innerHTML=clientOptions();$("noteProduct").innerHTML=state.products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");updateNotePrice()}
+function refreshSelects(){
+$("noteClient").innerHTML=clientOptions();
+$("priceClient").innerHTML=clientOptions();
+const productOptions=state.products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");
+$("noteProduct").innerHTML=productOptions;
+["invEntryProduct","invExitProduct"].forEach(id=>{if($(id))$(id).innerHTML=productOptions});
+if($("invFilterProduct"))$("invFilterProduct").innerHTML='<option value="">Todos los productos</option>'+productOptions;
+updateNotePrice()
+}
 function effectivePrice(cid,pid){const s=state.prices?.[cid]?.[pid];if(s!==undefined&&s!=="")return Number(s);return Number(state.products.find(p=>p.id===pid)?.price||0)}
 function updateNotePrice(){$("notePrice").value=effectivePrice($("noteClient").value,$("noteProduct").value).toFixed(2)}
 function renderItems(){$("noteItems").innerHTML=state.items.length?state.items.map(i=>`<tr><td>${esc(i.name)}</td><td class="num">${i.qty.toFixed(3)}</td><td class="num">${money.format(i.price)}</td><td class="num">${money.format(i.amount)}</td><td><button class="danger" data-remove="${i.id}">Quitar</button></td></tr>`).join(""):'<tr><td colspan="5" class="num">Sin productos</td></tr>';document.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{state.items=state.items.filter(i=>i.id!==b.dataset.remove);renderItems()})}
@@ -321,7 +417,139 @@ const clientsHtml=clientIds.map(cid=>{
 const productsHtml=Object.values(productMap).map(p=>`<tr><td>${esc(p.name)}</td><td>${p.qty.toFixed(3)}</td><td>${money.format(p.total)}</td></tr>`).join("");
 $("pdfSheet").innerHTML=`<div class="pdf-header"><div><h1>Resumen General Diario</h1><p>Carnicería 360° — Notas a crédito</p></div><div class="pdf-meta"><strong>${new Date(date+"T12:00:00").toLocaleDateString("es-MX",{day:"2-digit",month:"long",year:"numeric"})}</strong><br>Generado ${new Date().toLocaleString("es-MX")}</div></div><div class="pdf-summary"><div class="pdf-card"><small>Notas</small><strong>${notes.length}</strong></div><div class="pdf-card"><small>Clientes</small><strong>${clientIds.length}</strong></div><div class="pdf-card"><small>Venta total</small><strong>${money.format(total)}</strong></div><div class="pdf-card"><small>Productos distintos</small><strong>${Object.keys(productMap).length}</strong></div></div>${notes.length?clientsHtml:'<div class="empty">No hay notas para esta fecha.</div>'}<div class="product-summary"><h3>Resumen por producto</h3><table class="pdf-table"><thead><tr><th>Producto</th><th>Cantidad total</th><th>Importe total</th></tr></thead><tbody>${productsHtml||'<tr><td colspan="3">Sin movimientos</td></tr>'}</tbody></table></div>`;
 }
-document.querySelectorAll(".menu button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".menu button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".module").forEach(m=>m.classList.add("hidden"));$(b.dataset.module).classList.remove("hidden");const map={notas:["Notas a crédito","Captura ventas con precios por cliente."],clientes:["Clientes","Alta y consulta de clientes."],productos:["Productos","Catálogo editable de vísceras."],precios:["Precios especiales","Precios distintos por cliente."],resumen:["Resumen diario PDF","Hoja imprimible con todos los pedidos del día."]};$("title").textContent=map[b.dataset.module][0];$("subtitle").textContent=map[b.dataset.module][1];if(b.dataset.module==="productos")renderProducts();if(b.dataset.module==="precios")renderPrices();if(b.dataset.module==="resumen")generateReport()});
+
+function inventorySummary(){
+  const map={};
+  state.inventory.forEach(m=>{
+    const key=m.productId+"|"+m.unit;
+    if(!map[key])map[key]={productId:m.productId,name:m.productName,unit:m.unit,entries:0,exits:0,costValue:0};
+    if(m.type==="entrada"){map[key].entries+=m.qty;map[key].costValue+=m.qty*(m.unitCost||0)}
+    else map[key].exits+=m.qty;
+  });
+  return Object.values(map).map(x=>({...x,available:x.entries-x.exits,avgCost:x.entries?x.costValue/x.entries:0,value:(x.entries-x.exits)*(x.entries?x.costValue/x.entries:0)}));
+}
+function renderInventory(){
+  const rows=inventorySummary();
+  $("invProductsCount").textContent=rows.filter(r=>r.available>0).length;
+  $("invTotalKg").textContent=rows.filter(r=>r.unit==="kg").reduce((s,r)=>s+r.available,0).toFixed(3)+" kg";
+  $("invTotalPieces").textContent=rows.filter(r=>r.unit==="pza").reduce((s,r)=>s+r.available,0).toFixed(0);
+  $("invPurchaseValue").textContent=money.format(state.inventory.filter(m=>m.type==="entrada").reduce((s,m)=>s+m.qty*(m.unitCost||0),0));
+
+  $("inventoryStockTable").innerHTML=rows.length?rows.map(r=>`<tr>
+    <td>${esc(r.name)}</td><td>${r.unit==="kg"?"Kilogramos":"Piezas"}</td>
+    <td class="num">${r.entries.toFixed(r.unit==="kg"?3:0)}</td>
+    <td class="num">${r.exits.toFixed(r.unit==="kg"?3:0)}</td>
+    <td class="num ${r.available<=0?"stock-low":"stock-ok"}">${r.available.toFixed(r.unit==="kg"?3:0)}</td>
+    <td class="num">${money.format(r.avgCost)}</td><td class="num">${money.format(r.value)}</td>
+  </tr>`).join(""):'<tr><td colspan="7">Sin movimientos de inventario.</td></tr>';
+  renderInventoryMovements();
+}
+function renderInventoryMovements(){
+  const pid=$("invFilterProduct")?.value||"",type=$("invFilterType")?.value||"";
+  const list=[...state.inventory].filter(m=>(!pid||m.productId===pid)&&(!type||m.type===type)).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  $("inventoryMovements").innerHTML=list.length?list.map(m=>`<div class="inventory-movement">
+    <div class="inventory-movement-head"><div><strong>${m.type==="entrada"?"Entrada":"Salida"} — ${esc(m.productName)}</strong>
+    <div class="inventory-movement-meta"><span>${new Date(m.date+"T12:00:00").toLocaleDateString("es-MX")}</span><span>${m.qty.toFixed(m.unit==="kg"?3:0)} ${m.unit}</span>${m.supplier?`<span>Proveedor: ${esc(m.supplier)}</span>`:""}${m.reason?`<span>Motivo: ${esc(m.reason)}</span>`:""}</div></div>
+    <span class="badge">${m.type==="entrada"?(m.unitCost?money.format(m.unitCost)+"/"+m.unit:"Entrada"):"Salida"}</span></div>
+    ${(m.lot||m.reference||m.notes)?`<div class="inventory-movement-meta">${m.lot?`<span>Lote: ${esc(m.lot)}</span>`:""}${m.reference?`<span>Ref: ${esc(m.reference)}</span>`:""}${m.notes?`<span>${esc(m.notes)}</span>`:""}</div>`:""}
+  </div>`).join(""):'<div class="empty">No hay movimientos con estos filtros.</div>';
+}
+function currentAvailable(productId,unit){
+  return inventorySummary().find(r=>r.productId===productId&&r.unit===unit)?.available||0;
+}
+document.querySelectorAll("[data-invtab]").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("[data-invtab]").forEach(x=>x.classList.remove("active"));b.classList.add("active");
+  document.querySelectorAll(".inv-view").forEach(v=>v.classList.add("hidden"));
+  const map={entrada:"invEntrada",salida:"invSalida",existencias:"invExistencias",movimientos:"invMovimientos"};
+  $(map[b.dataset.invtab]).classList.remove("hidden");renderInventory();
+});
+$("saveInventoryEntry").onclick=()=>{
+  const pid=$("invEntryProduct").value,p=state.products.find(x=>x.id===pid),qty=Number($("invEntryQty").value),cost=Number($("invEntryCost").value||0);
+  if(!pid||!qty||qty<=0||!$("invSupplier").value.trim()){
+    $("invEntryMessage").textContent="Captura proveedor, producto y cantidad recibida.";$("invEntryMessage").className="message error";return;
+  }
+  state.inventory.push({id:uid(),type:"entrada",date:$("invEntryDate").value,productId:pid,productName:p.name,unit:$("invEntryUnit").value,qty,unitCost:cost,supplier:$("invSupplier").value.trim(),lot:$("invEntryLot").value.trim(),reference:$("invEntryRef").value.trim(),notes:$("invEntryNotes").value.trim(),createdAt:new Date().toISOString()});
+  save();["invEntryQty","invEntryCost","invEntryLot","invEntryRef","invEntryNotes"].forEach(id=>$(id).value="");
+  $("invEntryMessage").textContent="Entrada guardada correctamente.";$("invEntryMessage").className="message ok";renderInventory();
+};
+$("saveInventoryExit").onclick=()=>{
+  const pid=$("invExitProduct").value,p=state.products.find(x=>x.id===pid),unit=$("invExitUnit").value,qty=Number($("invExitQty").value),available=currentAvailable(pid,unit);
+  if(!pid||!qty||qty<=0){$("invExitMessage").textContent="Selecciona producto y captura una cantidad.";$("invExitMessage").className="message error";return}
+  if(qty>available){$("invExitMessage").textContent=`No hay suficiente existencia. Disponible: ${available.toFixed(unit==="kg"?3:0)} ${unit}.`;$("invExitMessage").className="message error";return}
+  state.inventory.push({id:uid(),type:"salida",date:$("invExitDate").value,productId:pid,productName:p.name,unit,qty,reason:$("invExitReason").value,reference:$("invExitRef").value.trim(),notes:$("invExitNotes").value.trim(),createdAt:new Date().toISOString()});
+  save();["invExitQty","invExitRef","invExitNotes"].forEach(id=>$(id).value="");
+  $("invExitMessage").textContent="Salida guardada correctamente.";$("invExitMessage").className="message ok";renderInventory();
+};
+$("invFilterProduct").onchange=renderInventoryMovements;
+$("invFilterType").onchange=renderInventoryMovements;
+
+document.querySelectorAll(".menu button").forEach(b=>b.onclick=()=>{
+function inventorySummary(){
+  const map={};
+  state.inventory.forEach(m=>{
+    const key=m.productId+"|"+m.unit;
+    if(!map[key])map[key]={productId:m.productId,name:m.productName,unit:m.unit,entries:0,exits:0,costValue:0};
+    if(m.type==="entrada"){map[key].entries+=m.qty;map[key].costValue+=m.qty*(m.unitCost||0)}
+    else map[key].exits+=m.qty;
+  });
+  return Object.values(map).map(x=>({...x,available:x.entries-x.exits,avgCost:x.entries?x.costValue/x.entries:0,value:(x.entries-x.exits)*(x.entries?x.costValue/x.entries:0)}));
+}
+function renderInventory(){
+  const rows=inventorySummary();
+  $("invProductsCount").textContent=rows.filter(r=>r.available>0).length;
+  $("invTotalKg").textContent=rows.filter(r=>r.unit==="kg").reduce((s,r)=>s+r.available,0).toFixed(3)+" kg";
+  $("invTotalPieces").textContent=rows.filter(r=>r.unit==="pza").reduce((s,r)=>s+r.available,0).toFixed(0);
+  $("invPurchaseValue").textContent=money.format(state.inventory.filter(m=>m.type==="entrada").reduce((s,m)=>s+m.qty*(m.unitCost||0),0));
+
+  $("inventoryStockTable").innerHTML=rows.length?rows.map(r=>`<tr>
+    <td>${esc(r.name)}</td><td>${r.unit==="kg"?"Kilogramos":"Piezas"}</td>
+    <td class="num">${r.entries.toFixed(r.unit==="kg"?3:0)}</td>
+    <td class="num">${r.exits.toFixed(r.unit==="kg"?3:0)}</td>
+    <td class="num ${r.available<=0?"stock-low":"stock-ok"}">${r.available.toFixed(r.unit==="kg"?3:0)}</td>
+    <td class="num">${money.format(r.avgCost)}</td><td class="num">${money.format(r.value)}</td>
+  </tr>`).join(""):'<tr><td colspan="7">Sin movimientos de inventario.</td></tr>';
+  renderInventoryMovements();
+}
+function renderInventoryMovements(){
+  const pid=$("invFilterProduct")?.value||"",type=$("invFilterType")?.value||"";
+  const list=[...state.inventory].filter(m=>(!pid||m.productId===pid)&&(!type||m.type===type)).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  $("inventoryMovements").innerHTML=list.length?list.map(m=>`<div class="inventory-movement">
+    <div class="inventory-movement-head"><div><strong>${m.type==="entrada"?"Entrada":"Salida"} — ${esc(m.productName)}</strong>
+    <div class="inventory-movement-meta"><span>${new Date(m.date+"T12:00:00").toLocaleDateString("es-MX")}</span><span>${m.qty.toFixed(m.unit==="kg"?3:0)} ${m.unit}</span>${m.supplier?`<span>Proveedor: ${esc(m.supplier)}</span>`:""}${m.reason?`<span>Motivo: ${esc(m.reason)}</span>`:""}</div></div>
+    <span class="badge">${m.type==="entrada"?(m.unitCost?money.format(m.unitCost)+"/"+m.unit:"Entrada"):"Salida"}</span></div>
+    ${(m.lot||m.reference||m.notes)?`<div class="inventory-movement-meta">${m.lot?`<span>Lote: ${esc(m.lot)}</span>`:""}${m.reference?`<span>Ref: ${esc(m.reference)}</span>`:""}${m.notes?`<span>${esc(m.notes)}</span>`:""}</div>`:""}
+  </div>`).join(""):'<div class="empty">No hay movimientos con estos filtros.</div>';
+}
+function currentAvailable(productId,unit){
+  return inventorySummary().find(r=>r.productId===productId&&r.unit===unit)?.available||0;
+}
+document.querySelectorAll("[data-invtab]").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("[data-invtab]").forEach(x=>x.classList.remove("active"));b.classList.add("active");
+  document.querySelectorAll(".inv-view").forEach(v=>v.classList.add("hidden"));
+  const map={entrada:"invEntrada",salida:"invSalida",existencias:"invExistencias",movimientos:"invMovimientos"};
+  $(map[b.dataset.invtab]).classList.remove("hidden");renderInventory();
+});
+$("saveInventoryEntry").onclick=()=>{
+  const pid=$("invEntryProduct").value,p=state.products.find(x=>x.id===pid),qty=Number($("invEntryQty").value),cost=Number($("invEntryCost").value||0);
+  if(!pid||!qty||qty<=0||!$("invSupplier").value.trim()){
+    $("invEntryMessage").textContent="Captura proveedor, producto y cantidad recibida.";$("invEntryMessage").className="message error";return;
+  }
+  state.inventory.push({id:uid(),type:"entrada",date:$("invEntryDate").value,productId:pid,productName:p.name,unit:$("invEntryUnit").value,qty,unitCost:cost,supplier:$("invSupplier").value.trim(),lot:$("invEntryLot").value.trim(),reference:$("invEntryRef").value.trim(),notes:$("invEntryNotes").value.trim(),createdAt:new Date().toISOString()});
+  save();["invEntryQty","invEntryCost","invEntryLot","invEntryRef","invEntryNotes"].forEach(id=>$(id).value="");
+  $("invEntryMessage").textContent="Entrada guardada correctamente.";$("invEntryMessage").className="message ok";renderInventory();
+};
+$("saveInventoryExit").onclick=()=>{
+  const pid=$("invExitProduct").value,p=state.products.find(x=>x.id===pid),unit=$("invExitUnit").value,qty=Number($("invExitQty").value),available=currentAvailable(pid,unit);
+  if(!pid||!qty||qty<=0){$("invExitMessage").textContent="Selecciona producto y captura una cantidad.";$("invExitMessage").className="message error";return}
+  if(qty>available){$("invExitMessage").textContent=`No hay suficiente existencia. Disponible: ${available.toFixed(unit==="kg"?3:0)} ${unit}.`;$("invExitMessage").className="message error";return}
+  state.inventory.push({id:uid(),type:"salida",date:$("invExitDate").value,productId:pid,productName:p.name,unit,qty,reason:$("invExitReason").value,reference:$("invExitRef").value.trim(),notes:$("invExitNotes").value.trim(),createdAt:new Date().toISOString()});
+  save();["invExitQty","invExitRef","invExitNotes"].forEach(id=>$(id).value="");
+  $("invExitMessage").textContent="Salida guardada correctamente.";$("invExitMessage").className="message ok";renderInventory();
+};
+$("invFilterProduct").onchange=renderInventoryMovements;
+$("invFilterType").onchange=renderInventoryMovements;
+
+document.querySelectorAll(".menu button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".module").forEach(m=>m.classList.add("hidden"));$(b.dataset.module).classList.remove("hidden");const map={notas:["Notas a crédito","Captura ventas con precios por cliente."],clientes:["Clientes","Alta y consulta de clientes."],productos:["Productos","Catálogo editable de vísceras."],precios:["Precios especiales","Precios distintos por cliente."],inventario:["Inventario","Control de entradas, compras, salidas y existencias."],resumen:["Resumen diario PDF","Hoja imprimible con todos los pedidos del día."]};$("title").textContent=map[b.dataset.module][0];$("subtitle").textContent=map[b.dataset.module][1];if(b.dataset.module==="productos")renderProducts();if(b.dataset.module==="precios")renderPrices();if(b.dataset.module==="inventario")renderInventory();if(b.dataset.module==="resumen")generateReport()});
 $("saveClient").onclick=()=>{const name=$("clientName").value.trim();if(!name){$("clientMessage").textContent="El nombre es obligatorio.";$("clientMessage").className="message error";return}state.clients.push({id:uid(),name,phone:$("clientPhone").value.trim()});save();$("clientName").value="";$("clientPhone").value="";$("clientMessage").textContent="Cliente guardado.";$("clientMessage").className="message ok";renderClients();refreshSelects()};
 $("saveProduct").onclick=()=>{const name=$("productName").value.trim(),price=Number($("productPrice").value||0);if(!name){$("productMessage").textContent="Escribe el nombre del producto.";$("productMessage").className="message error";return}state.products.push({id:uid(),name,price});save();$("productName").value="";$("productPrice").value="";renderProducts();refreshSelects()};
 $("addItem").onclick=()=>{const cid=$("noteClient").value,pid=$("noteProduct").value,qty=Number($("noteQty").value),price=Number($("notePrice").value),p=state.products.find(x=>x.id===pid);if(!cid||!qty||qty<=0){$("noteMessage").textContent="Selecciona cliente y captura cantidad.";$("noteMessage").className="message error";return}state.items.push({id:uid(),productId:pid,name:p.name,qty,price,amount:qty*price});$("noteQty").value="";renderItems()};
@@ -331,7 +559,9 @@ $("noteClient").onchange=updateNotePrice;$("noteProduct").onchange=updateNotePri
 $("savePrices").onclick=()=>{const cid=$("priceClient").value;if(!cid)return;state.prices[cid]=state.prices[cid]||{};document.querySelectorAll(".special").forEach(i=>{if(i.value==="")delete state.prices[cid][i.dataset.id];else state.prices[cid][i.dataset.id]=Number(i.value)});save();$("priceMessage").textContent="Precios guardados.";$("priceMessage").className="message ok"};
 $("generateReport").onclick=generateReport;$("printReport").onclick=()=>window.print();
 $("reportDate").value=new Date().toISOString().slice(0,10);
-save();refreshSelects();renderItems();renderClients();renderProducts();renderPrices();generateReport();
+$("invEntryDate").value=new Date().toISOString().slice(0,10);
+$("invExitDate").value=new Date().toISOString().slice(0,10);
+save();refreshSelects();renderItems();renderClients();renderProducts();renderPrices();renderInventory();generateReport();
 </script>
 </body>
 </html>
