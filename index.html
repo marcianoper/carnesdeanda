@@ -3,343 +3,225 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Carnicería 360°</title>
+<title>Carnicería 360° — Vísceras y Crédito</title>
 <style>
-:root{--p:#8f1d22;--pd:#681318;--gold:#d8a23d;--bg:#f4f1ec;--card:#fff;--ink:#241f1d;--muted:#746b66;--line:#ded7d1;--ok:#157347;--bad:#b42318;--shadow:0 12px 35px rgba(54,35,24,.12)}
-*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}button,input,select,textarea{font:inherit}.hidden{display:none!important}
-.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at top left,rgba(216,162,61,.18),transparent 30%),linear-gradient(135deg,#f7f3ee,#eee6dd)}
-.login-box{width:min(100%,1050px);background:rgba(255,255,255,.94);border-radius:28px;box-shadow:var(--shadow);padding:34px}.brand{text-align:center;margin-bottom:28px}.brand-badge{width:72px;height:72px;margin:0 auto 14px;border-radius:22px;display:grid;place-items:center;color:#fff;font-size:34px;background:linear-gradient(145deg,var(--p),var(--pd))}.brand h1{margin:0;font-size:clamp(28px,4vw,44px)}.brand p{color:var(--muted)}
-.profiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:18px}.profile-card{border:2px solid transparent;background:#fff;border-radius:22px;padding:20px;cursor:pointer;text-align:center;box-shadow:0 7px 20px rgba(48,32,23,.08)}.profile-card:hover,.profile-card.selected{border-color:var(--p);transform:translateY(-2px)}.avatar{width:102px;height:102px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;font-size:42px;font-weight:800;color:#fff;background:linear-gradient(145deg,#a8373c,#6d1519);border:5px solid #f3e6e6}.profile-card h3{margin:0}.profile-card span{display:inline-block;margin-top:7px;padding:5px 10px;border-radius:999px;background:#f4ebe7;color:var(--pd);font-size:13px;font-weight:700}
-.pin-panel{width:min(100%,420px);margin:28px auto 0;padding-top:24px;border-top:1px solid var(--line);text-align:center}.selected-user{font-weight:800}.pin-dots{display:flex;justify-content:center;gap:12px;margin:16px 0 22px}.pin-dot{width:16px;height:16px;border-radius:50%;background:#d7cfca}.pin-dot.filled{background:var(--p)}.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:310px;margin:auto}.key{border:0;min-height:58px;border-radius:16px;background:#f2ece7;font-size:22px;font-weight:800;cursor:pointer}.key.enter{background:var(--p);color:#fff}.key.action{font-size:15px}.login-error{min-height:22px;margin-top:14px;color:var(--bad);font-weight:700}
-.app{min-height:100vh;display:grid;grid-template-columns:255px 1fr}.sidebar{background:#251d1a;color:#fff;padding:22px 16px;display:flex;flex-direction:column;gap:18px}.side-brand{display:flex;gap:12px;align-items:center;padding:8px 10px 18px;border-bottom:1px solid rgba(255,255,255,.1)}.side-logo{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:var(--p);font-size:22px}.side-brand small,.side-user small{display:block;color:#c7bbb5;margin-top:3px}.menu{display:flex;flex-direction:column;gap:8px}.menu button{border:0;background:transparent;color:#e8dfda;text-align:left;padding:13px 14px;border-radius:13px;cursor:pointer;font-weight:700}.menu button:hover,.menu button.active{background:rgba(255,255,255,.1);color:#fff}.side-user{margin-top:auto;display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,.07);border-radius:16px}.mini-avatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--p);font-weight:900}.logout{border:0;color:#fff;background:#4a3530;padding:11px;border-radius:12px;cursor:pointer}
-.content{padding:26px;overflow:auto}.topbar{display:flex;justify-content:space-between;gap:20px;margin-bottom:24px}.topbar h2{margin:0;font-size:30px}.topbar p{margin:6px 0;color:var(--muted)}.date-chip{background:#fff;padding:11px 15px;border-radius:12px;border:1px solid var(--line);font-weight:700}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:16px;margin-bottom:22px}.stat,.panel{background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 7px 22px rgba(55,38,28,.05)}.stat{padding:20px}.stat small{color:var(--muted);font-weight:700}.stat strong{display:block;font-size:28px;margin-top:8px}.stat span{font-size:13px;color:var(--ok)}.panel{padding:22px}.panel h3{margin:0 0 8px}.panel>p{margin:0 0 18px;color:var(--muted)}
-.quick-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.quick{border:1px solid var(--line);background:#fbf8f5;border-radius:17px;padding:20px;text-align:left;cursor:pointer}.quick b{display:block;font-size:18px;margin-bottom:7px}.quick span{color:var(--muted)}
-.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.field{display:flex;flex-direction:column;gap:7px}.field.full{grid-column:1/-1}.field label{font-weight:800}.field label span{color:var(--bad)}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:13px;padding:13px 14px;background:#fff}.field input:focus,.field select:focus{outline:2px solid rgba(143,29,34,.15);border-color:var(--p)}.primary-btn,.secondary-btn,.danger-btn{border:0;border-radius:13px;padding:13px 18px;font-weight:800;cursor:pointer}.primary-btn{background:var(--p);color:#fff}.secondary-btn{background:#eee7e2;color:var(--ink)}.danger-btn{background:#fee4e2;color:var(--bad)}.form-message{min-height:24px;margin:12px 0;font-weight:700}.form-message.success{color:var(--ok)}.form-message.error{color:var(--bad)}
-.clients-toolbar,.section-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-top:24px}.clients-list,.notes-list{display:grid;gap:10px;margin-top:12px}.client-row,.note-row{display:flex;align-items:center;justify-content:space-between;gap:15px;border:1px solid var(--line);border-radius:14px;padding:14px}.client-row small,.note-row small{display:block;color:var(--muted);margin-top:4px}.badge{padding:5px 9px;border-radius:999px;background:#f2ebe6;font-size:12px;font-weight:800}.empty{border:2px dashed var(--line);border-radius:16px;padding:28px;text-align:center;color:var(--muted)}
-.note-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(330px,.85fr);gap:18px}.note-builder,.note-summary{border:1px solid var(--line);border-radius:18px;padding:18px;background:#fff}.note-summary{background:#fbf8f5}.line-grid{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end;margin-top:16px}.items-table{width:100%;border-collapse:collapse;margin-top:18px}.items-table th,.items-table td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left}.items-table th{text-transform:uppercase;font-size:12px;color:var(--muted)}.items-table td.num,.items-table th.num{text-align:right}.remove-item{border:0;background:#fee4e2;color:var(--bad);border-radius:9px;padding:7px 9px;cursor:pointer}.total-box{display:flex;justify-content:space-between;align-items:center;border-top:2px solid var(--line);margin-top:18px;padding-top:16px;font-size:24px;font-weight:900}.note-actions{display:flex;gap:10px;margin-top:18px}.note-actions button{flex:1}.folio-preview{padding:12px;border-radius:12px;background:#f0e6e2;font-weight:800;margin-bottom:14px}
-.price-toolbar{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;margin-bottom:18px}.price-table{width:100%;border-collapse:collapse}.price-table th,.price-table td{padding:12px 9px;border-bottom:1px solid var(--line)}.price-table th{text-align:left;color:var(--muted);font-size:12px;text-transform:uppercase}.price-table input{width:130px;border:1px solid var(--line);border-radius:10px;padding:9px}.price-source{font-size:12px;color:var(--muted);display:block;margin-top:4px}
-
-.account-toolbar{display:grid;grid-template-columns:minmax(240px,1fr) auto;gap:12px;align-items:end;margin-bottom:18px}.account-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}.account-card{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fbf8f5}.account-card small{display:block;color:var(--muted);font-weight:700}.account-card strong{display:block;font-size:24px;margin-top:7px}.account-card.balance strong{color:var(--bad)}.payment-box{border:1px solid var(--line);border-radius:17px;padding:17px;margin-bottom:18px;background:#fff}.payment-grid{display:grid;grid-template-columns:1fr 1fr 1.3fr auto;gap:10px;align-items:end}.movement-list{display:grid;gap:12px}.movement{border:1px solid var(--line);border-radius:16px;background:#fff;overflow:hidden}.movement-head{display:flex;justify-content:space-between;gap:16px;padding:15px;cursor:pointer}.movement-head:hover{background:#fbf8f5}.movement.credit{border-left:5px solid var(--p)}.movement.payment{border-left:5px solid var(--ok)}.movement-meta{color:var(--muted);font-size:13px;margin-top:5px}.movement-amount{text-align:right;white-space:nowrap}.movement-amount strong{display:block;font-size:18px}.movement.credit .movement-amount strong{color:var(--bad)}.movement.payment .movement-amount strong{color:var(--ok)}.movement-detail{display:none;padding:0 15px 15px;border-top:1px solid var(--line);background:#fcfaf8}.movement.open .movement-detail{display:block}.detail-table{width:100%;border-collapse:collapse;margin-top:12px}.detail-table th,.detail-table td{padding:9px 7px;border-bottom:1px solid var(--line);text-align:left}.detail-table th{font-size:12px;color:var(--muted);text-transform:uppercase}.detail-table .num{text-align:right}.client-balance{font-weight:900;color:var(--bad)}.status-paid{color:var(--ok)}.status-pending{color:var(--bad)}
-@media(max-width:950px){.app{grid-template-columns:82px 1fr}.side-brand strong,.side-brand small,.menu button span,.side-user div,.logout{display:none}.menu button{text-align:center}.stats{grid-template-columns:repeat(2,1fr)}.note-layout{grid-template-columns:1fr}.quick-actions{grid-template-columns:1fr}.line-grid{grid-template-columns:1fr 1fr}.line-grid .product-field{grid-column:1/-1}}
-@media(max-width:620px){.account-summary{grid-template-columns:1fr}.account-toolbar,.payment-grid{grid-template-columns:1fr}.movement-head{align-items:flex-start}.movement-amount{font-size:13px}.login-box{padding:22px 16px}.profiles{grid-template-columns:repeat(2,1fr)}.avatar{width:78px;height:78px}.app{display:block}.sidebar{position:fixed;left:0;right:0;bottom:0;height:72px;z-index:10;flex-direction:row;padding:8px}.side-brand,.side-user,.logout{display:none}.menu{width:100%;flex-direction:row;justify-content:space-around}.menu button{padding:12px}.menu button:nth-child(n+6){display:none}.content{padding:18px 14px 95px}.date-chip{display:none}.stats,.form-grid{grid-template-columns:1fr}.line-grid{grid-template-columns:1fr}.line-grid .product-field{grid-column:auto}.price-toolbar{grid-template-columns:1fr}.price-table{font-size:13px}.price-table input{width:100px}}
-
-.admin-only.hidden-by-role{display:none!important}.admin-note{padding:10px 12px;border-radius:12px;background:#fff3cd;color:#664d03;font-weight:700;margin-bottom:15px}.product-admin-grid{display:grid;grid-template-columns:2fr 1fr auto;gap:10px;align-items:end;margin-bottom:18px}.product-admin-list{display:grid;gap:10px}.product-admin-row{display:grid;grid-template-columns:1fr 140px auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:12px}.product-admin-row input{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px}.daily-toolbar{display:grid;grid-template-columns:220px auto;gap:12px;align-items:end;margin-bottom:18px}.daily-summary-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.daily-card{border:1px solid var(--line);border-radius:16px;padding:15px;background:#fbf8f5}.daily-card small{display:block;color:var(--muted);font-weight:700}.daily-card strong{display:block;font-size:22px;margin-top:6px}.daily-client{border:1px solid var(--line);border-radius:16px;margin-bottom:14px;overflow:hidden}.daily-client-head{display:flex;justify-content:space-between;gap:15px;padding:14px;background:#fbf8f5}.daily-client-body{padding:0 14px 14px}.daily-totals{margin-top:18px;border-top:2px solid var(--line);padding-top:16px}.danger-mini{border:0;background:#fee4e2;color:var(--bad);border-radius:10px;padding:9px 11px;font-weight:800;cursor:pointer}@media(max-width:750px){.product-admin-grid,.product-admin-row,.daily-toolbar,.daily-summary-cards{grid-template-columns:1fr}}
+:root{
+  --p:#7d171b;--pd:#571013;--bg:#f3f0ec;--card:#fff;--ink:#241f1d;
+  --muted:#716963;--line:#ded7d1;--ok:#157347;--bad:#b42318;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+button,input,select,textarea{font:inherit}
+.hidden{display:none!important}
+.app{min-height:100vh;display:grid;grid-template-columns:250px 1fr}
+.sidebar{background:#241b19;color:#fff;padding:20px 14px;display:flex;flex-direction:column;gap:16px}
+.brand{display:flex;gap:12px;align-items:center;padding:8px 10px 18px;border-bottom:1px solid rgba(255,255,255,.1)}
+.logo{width:46px;height:46px;border-radius:14px;background:var(--p);display:grid;place-items:center;font-size:23px}
+.brand small{display:block;color:#c8bbb5;margin-top:3px}
+.menu{display:flex;flex-direction:column;gap:8px}
+.menu button{border:0;background:transparent;color:#eee6e2;text-align:left;padding:13px;border-radius:12px;font-weight:700;cursor:pointer}
+.menu button.active,.menu button:hover{background:rgba(255,255,255,.1)}
+.content{padding:25px}
+.topbar{display:flex;justify-content:space-between;align-items:start;gap:20px;margin-bottom:22px}
+.topbar h1{margin:0;font-size:30px}
+.topbar p{margin:6px 0 0;color:var(--muted)}
+.user-chip{background:#fff;border:1px solid var(--line);padding:11px 14px;border-radius:12px;font-weight:700}
+.panel{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;margin-bottom:18px}
+.panel h2,.panel h3{margin:0 0 8px}
+.panel p{color:var(--muted);margin:0 0 18px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field.full{grid-column:1/-1}
+.field label{font-weight:800}
+.field input,.field select,.field textarea{border:1px solid var(--line);border-radius:12px;padding:12px 13px}
+.primary,.secondary,.danger{border:0;border-radius:12px;padding:12px 16px;font-weight:800;cursor:pointer}
+.primary{background:var(--p);color:#fff}.secondary{background:#eee7e2;color:var(--ink)}.danger{background:#fee4e2;color:var(--bad)}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:11px 9px;border-bottom:1px solid var(--line);text-align:left}
+th{font-size:12px;text-transform:uppercase;color:var(--muted)}
+.num{text-align:right}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#f2e7e4;font-size:12px;font-weight:800}
+.message{min-height:22px;margin-top:10px;font-weight:700}.ok{color:var(--ok)}.error{color:var(--bad)}
+.report-toolbar{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:end}
+.report-preview{margin-top:18px;background:#ddd;padding:18px;border-radius:16px;overflow:auto}
+.pdf-sheet{width:210mm;min-height:297mm;margin:auto;background:#fff;padding:15mm 14mm;box-shadow:0 0 18px rgba(0,0,0,.15);color:#111}
+.pdf-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #111;padding-bottom:10px}
+.pdf-header h1{margin:0;font-size:22px}.pdf-header p{margin:4px 0 0;font-size:12px;color:#444}
+.pdf-meta{text-align:right;font-size:12px}
+.pdf-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}
+.pdf-card{border:1px solid #bbb;padding:9px}.pdf-card small{display:block;color:#555}.pdf-card strong{font-size:16px}
+.client-block{margin-top:16px;page-break-inside:avoid}
+.client-block h3{margin:0;background:#eee;padding:8px 10px;font-size:15px}
+.note-box{border:1px solid #bbb;border-top:0;padding:10px}
+.note-head{display:flex;justify-content:space-between;font-size:12px;margin-bottom:7px}
+.pdf-table{width:100%;border-collapse:collapse;font-size:11px}.pdf-table th,.pdf-table td{border:1px solid #bbb;padding:6px}.pdf-table th{background:#f4f4f4;color:#111}
+.product-summary{margin-top:18px;page-break-inside:avoid}
+.empty{padding:28px;border:2px dashed var(--line);border-radius:14px;text-align:center;color:var(--muted)}
+@media(max-width:900px){.app{grid-template-columns:80px 1fr}.brand div:last-child,.menu span{display:none}.menu button{text-align:center}.grid{grid-template-columns:1fr}.report-toolbar{grid-template-columns:1fr}.pdf-sheet{transform-origin:top left}}
+@media print{
+  body *{visibility:hidden}
+  #pdfSheet,#pdfSheet *{visibility:visible}
+  #pdfSheet{position:absolute;left:0;top:0;width:210mm;min-height:297mm;box-shadow:none;margin:0}
+  @page{size:A4;margin:0}
+}
 </style>
 </head>
 <body>
-<section id="loginScreen" class="login-screen">
-  <div class="login-box">
-    <div class="brand"><div class="brand-badge">🥩</div><h1>Carnicería 360°</h1><p>Selecciona tu perfil para ingresar</p></div>
-    <div id="profiles" class="profiles"></div>
-    <div id="pinPanel" class="pin-panel hidden">
-      <div id="selectedUserText" class="selected-user"></div>
-      <div class="pin-dots"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
-      <div class="keypad">
-        <button class="key" data-number="1">1</button><button class="key" data-number="2">2</button><button class="key" data-number="3">3</button>
-        <button class="key" data-number="4">4</button><button class="key" data-number="5">5</button><button class="key" data-number="6">6</button>
-        <button class="key" data-number="7">7</button><button class="key" data-number="8">8</button><button class="key" data-number="9">9</button>
-        <button class="key action" id="clearPin">Limpiar</button><button class="key" data-number="0">0</button><button class="key enter" id="enterBtn">Entrar</button>
-      </div>
-      <div id="loginError" class="login-error"></div>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="logo">🥩</div><div><strong>Carnicería 360°</strong><small>Control de crédito</small></div></div>
+    <nav class="menu">
+      <button class="active" data-module="notas">🧾 <span>Notas</span></button>
+      <button data-module="clientes">👥 <span>Clientes</span></button>
+      <button data-module="productos">🥩 <span>Productos</span></button>
+      <button data-module="precios">💲 <span>Precios</span></button>
+      <button data-module="resumen">📄 <span>Resumen PDF</span></button>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <div class="topbar">
+      <div><h1 id="title">Notas a crédito</h1><p id="subtitle">Captura ventas con precios por cliente.</p></div>
+      <div class="user-chip">Administrador</div>
     </div>
-  </div>
-</section>
 
-<section id="appScreen" class="app hidden">
-<aside class="sidebar">
-  <div class="side-brand"><div class="side-logo">🥩</div><div><strong>Carnicería 360°</strong><small>Punto de venta</small></div></div>
-  <nav class="menu">
-    <button class="active" data-module="inicio">🏠 <span>Inicio</span></button>
-    <button data-module="nueva-nota">🧾 <span>Nota a crédito</span></button>
-    <button data-module="clientes">👥 <span>Clientes</span></button>
-    <button data-module="precios">💲 <span>Precios</span></button>
-    <button data-module="historial">📚 <span>Historial</span></button>
-    <button class="admin-only" data-module="productos-admin">🥩 <span>Productos</span></button>
-    <button class="admin-only" data-module="resumen-diario">📋 <span>Resumen diario</span></button>
-  </nav>
-  <div class="side-user"><div id="miniAvatar" class="mini-avatar">E</div><div><strong id="sideUserName"></strong><small id="sideUserRole"></small></div></div>
-  <button id="logoutBtn" class="logout">Cerrar sesión</button>
-</aside>
-
-<main class="content">
-  <div class="topbar"><div><h2 id="moduleTitle">Inicio</h2><p id="welcomeText">Bienvenido.</p></div><div id="currentDate" class="date-chip"></div></div>
-
-  <div id="dashboardContent">
-    <section class="stats">
-      <div class="stat"><small>Crédito vendido</small><strong id="statSales">$0.00</strong><span>Total registrado</span></div>
-      <div class="stat"><small>Notas generadas</small><strong id="statNotes">0</strong><span>Guardadas</span></div>
-      <div class="stat"><small>Clientes activos</small><strong id="statClients">0</strong><span>Registrados</span></div>
-      <div class="stat"><small>Productos</small><strong id="statProducts">0</strong><span>Con precio general</span></div>
+    <section id="notas" class="module panel">
+      <h2>Nueva nota</h2>
+      <p>Selecciona cliente y agrega productos con su precio correspondiente.</p>
+      <div class="grid">
+        <div class="field"><label>Cliente</label><select id="noteClient"></select></div>
+        <div class="field"><label>Producto</label><select id="noteProduct"></select></div>
+        <div class="field"><label>Kilos / cantidad</label><input id="noteQty" type="number" step="0.001" min="0"></div>
+        <div class="field"><label>Precio</label><input id="notePrice" type="number" step="0.01" min="0"></div>
+        <div class="field full"><button id="addItem" class="primary">Agregar producto</button></div>
+      </div>
+      <div id="noteMessage" class="message"></div>
+      <div class="table-wrap"><table><thead><tr><th>Producto</th><th class="num">Cantidad</th><th class="num">Precio</th><th class="num">Importe</th><th></th></tr></thead><tbody id="noteItems"></tbody></table></div>
+      <div class="actions" style="margin-top:15px"><button id="saveNote" class="primary">Guardar nota</button><button id="clearNote" class="secondary">Limpiar</button></div>
     </section>
-    <section class="panel">
-      <h3>Acciones rápidas</h3><p>Captura notas a crédito y configura precios diferentes para cada cliente.</p>
-      <div class="quick-actions">
-        <button class="quick" data-go="nueva-nota"><b>🧾 Tomar nota a crédito</b><span>Selecciona cliente, producto, kilos y precio.</span></button>
-        <button class="quick" data-go="clientes"><b>👥 Dar de alta cliente</b><span>Nombre obligatorio y teléfono opcional.</span></button>
-        <button class="quick" data-go="precios"><b>💲 Ajustar precios</b><span>Define un precio especial por cliente y producto.</span></button>
+
+    <section id="clientes" class="module panel hidden">
+      <h2>Clientes</h2><p>Nombre obligatorio y teléfono opcional.</p>
+      <div class="grid">
+        <div class="field"><label>Nombre</label><input id="clientName"></div>
+        <div class="field"><label>Teléfono</label><input id="clientPhone"></div>
+        <div class="field full"><button id="saveClient" class="primary">Guardar cliente</button></div>
+      </div>
+      <div id="clientMessage" class="message"></div>
+      <div id="clientList"></div>
+    </section>
+
+    <section id="productos" class="module panel hidden">
+      <h2>Productos de vísceras</h2>
+      <p>Catálogo editable por el administrador. Se excluyen marcas particulares de caja de menudo.</p>
+      <div class="grid">
+        <div class="field"><label>Producto</label><input id="productName" placeholder="Ej. Lengua"></div>
+        <div class="field"><label>Precio general</label><input id="productPrice" type="number" step="0.01" min="0"></div>
+        <div class="field full"><button id="saveProduct" class="primary">Agregar producto</button></div>
+      </div>
+      <div id="productMessage" class="message"></div>
+      <div class="table-wrap"><table><thead><tr><th>Producto</th><th>Precio general</th><th>Acciones</th></tr></thead><tbody id="productTable"></tbody></table></div>
+    </section>
+
+    <section id="precios" class="module panel hidden">
+      <h2>Precios especiales</h2><p>Asigna precios diferentes para cada cliente.</p>
+      <div class="field"><label>Cliente</label><select id="priceClient"></select></div>
+      <div class="table-wrap" style="margin-top:15px"><table><thead><tr><th>Producto</th><th>General</th><th>Especial</th></tr></thead><tbody id="priceTable"></tbody></table></div>
+      <button id="savePrices" class="primary" style="margin-top:15px">Guardar precios</button>
+      <div id="priceMessage" class="message"></div>
+    </section>
+
+    <section id="resumen" class="module panel hidden">
+      <h2>Resumen general diario en PDF</h2>
+      <p>Genera una hoja lista para imprimir o guardar como PDF desde el navegador.</p>
+      <div class="report-toolbar">
+        <div class="field"><label>Fecha</label><input id="reportDate" type="date"></div>
+        <button id="generateReport" class="secondary">Generar vista</button>
+        <button id="printReport" class="primary">Imprimir / Guardar PDF</button>
+      </div>
+      <div class="report-preview">
+        <div id="pdfSheet" class="pdf-sheet"></div>
       </div>
     </section>
-  </div>
-
-  <section id="moduleContent" class="panel hidden">
-    <h3 id="moduleHeading"></h3><p id="moduleDescription"></p>
-
-    <div id="clientsModule" class="hidden">
-      <form id="clientForm" class="form-grid" novalidate>
-        <div class="field"><label>Nombre del cliente <span>*</span></label><input id="clientName" autocomplete="off" placeholder="Ej. Carnicería San José"></div>
-        <div class="field"><label>Número de teléfono <small>(opcional)</small></label><input id="clientPhone" type="tel" inputmode="tel" placeholder="Ej. 4621234567"></div>
-        <div class="field full"><button class="primary-btn" type="submit">Guardar cliente</button></div>
-      </form>
-      <div id="clientMessage" class="form-message"></div>
-      <div class="clients-toolbar"><h4>Clientes registrados</h4><span id="clientsCount" class="badge"></span></div>
-      <div id="clientsList" class="clients-list"></div>
-    </div>
-
-    <div id="noteModule" class="hidden">
-      <div class="note-layout">
-        <div class="note-builder">
-          <div class="field"><label>Cliente <span>*</span></label><select id="noteClient"></select></div>
-          <div class="line-grid">
-            <div class="field product-field"><label>Producto</label><select id="noteProduct"></select></div>
-            <div class="field"><label>Kilos / cantidad</label><input id="noteQty" type="number" inputmode="decimal" min="0" step="0.001" placeholder="0.000"></div>
-            <div class="field"><label>Precio</label><input id="notePrice" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"><small id="priceSource" class="price-source"></small></div>
-            <button id="addItemBtn" class="primary-btn" type="button">Agregar</button>
-          </div>
-          <div id="noteMessage" class="form-message"></div>
-          <div style="overflow:auto">
-            <table class="items-table">
-              <thead><tr><th>Producto</th><th class="num">Cantidad</th><th class="num">Precio</th><th class="num">Importe</th><th></th></tr></thead>
-              <tbody id="noteItemsBody"></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="note-summary">
-          <div id="folioPreview" class="folio-preview"></div>
-          <div class="field"><label>Observaciones <small>(opcional)</small></label><textarea id="noteObservations" rows="4" placeholder="Indicaciones de entrega, corte, empaque, etc."></textarea></div>
-          <div class="total-box"><span>Total</span><span id="noteTotal">$0.00</span></div>
-          <div class="note-actions"><button id="clearNoteBtn" class="secondary-btn" type="button">Limpiar</button><button id="saveNoteBtn" class="primary-btn" type="button">Guardar crédito</button></div>
-        </div>
-      </div>
-    </div>
-
-    <div id="pricesModule" class="hidden">
-      <div class="price-toolbar">
-        <div class="field"><label>Cliente para ajustar precios</label><select id="priceClient"></select></div>
-        <button id="savePricesBtn" class="primary-btn">Guardar precios</button>
-      </div>
-      <div id="priceMessage" class="form-message"></div>
-      <div style="overflow:auto">
-        <table class="price-table"><thead><tr><th>Producto</th><th>Precio general</th><th>Precio especial del cliente</th></tr></thead><tbody id="priceTableBody"></tbody></table>
-      </div>
-    </div>
-
-
-
-    <div id="productsAdminModule" class="hidden">
-      <div class="admin-note">Solo el administrador puede dar de alta productos, cambiar precios generales o eliminarlos.</div>
-      <div class="product-admin-grid">
-        <div class="field"><label>Nombre del producto</label><input id="newProductName" placeholder="Ej. Aguayón"></div>
-        <div class="field"><label>Precio general</label><input id="newProductPrice" type="number" min="0" step="0.01" placeholder="0.00"></div>
-        <button id="addProductBtn" class="primary-btn" type="button">Agregar producto</button>
-      </div>
-      <div id="productAdminMessage" class="form-message"></div>
-      <div id="productAdminList" class="product-admin-list"></div>
-    </div>
-
-    <div id="dailySummaryModule" class="hidden">
-      <div class="admin-note">Resumen general de todas las notas y abonos registrados en la fecha seleccionada.</div>
-      <div class="daily-toolbar">
-        <div class="field"><label>Fecha</label><input id="dailyDate" type="date"></div>
-        <button id="refreshDailyBtn" class="primary-btn" type="button">Ver resumen</button>
-      </div>
-      <div id="dailySummaryCards" class="daily-summary-cards"></div>
-      <div id="dailySummaryList"></div>
-    </div>
-
-    <div id="historyModule" class="hidden">
-      <div class="account-toolbar">
-        <div class="field"><label>Estado de cuenta del cliente</label><select id="accountClient"></select></div>
-        <button id="showAllAccountsBtn" class="secondary-btn" type="button">Ver todos</button>
-      </div>
-      <div id="accountSummary" class="account-summary"></div>
-      <div id="paymentBox" class="payment-box hidden">
-        <h4 style="margin:0 0 13px">Registrar abono</h4>
-        <div class="payment-grid">
-          <div class="field"><label>Monto</label><input id="paymentAmount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00"></div>
-          <div class="field"><label>Forma de pago</label><select id="paymentMethod"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option><option>Otro</option></select></div>
-          <div class="field"><label>Nota / referencia <small>(opcional)</small></label><input id="paymentReference" placeholder="Ej. transferencia del viernes"></div>
-          <button id="savePaymentBtn" class="primary-btn" type="button">Guardar abono</button>
-        </div>
-        <div id="paymentMessage" class="form-message"></div>
-      </div>
-      <div id="notesList" class="movement-list"></div>
-    </div>
-  </section>
-</main>
-</section>
+  </main>
+</div>
 
 <script>
 const money=new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN"});
-const DEFAULT_USERS=[
-{id:1,name:"Eduardo",role:"Administrador",pin:"1234",initials:"E"},
-{id:2,name:"José",role:"Encargado",pin:"2222",initials:"J"},
-{id:3,name:"Mariana",role:"Vendedor",pin:"3333",initials:"M"}];
 const DEFAULT_PRODUCTS=[
-{id:"bistec",name:"Bistec",price:250},
-{id:"costilla",name:"Costilla",price:200},
-{id:"cocido",name:"Carne para cocido",price:200},
-{id:"molida",name:"Carne molida",price:250},
-{id:"deshebrar",name:"Carne para deshebrar",price:250},
-{id:"pecho",name:"Pecho",price:250},
-{id:"diezmillo",name:"Diezmillo",price:250},
-{id:"chambarete",name:"Chambarete",price:200},
-{id:"ribeye",name:"Rib Eye",price:410},
-{id:"sirloin",name:"Sirloin",price:270}];
-
+{id:"menudo",name:"Menudo",price:0},
+{id:"panza",name:"Panza de res",price:0},
+{id:"tripa",name:"Tripa completa",price:0},
+{id:"tripa-rastro",name:"Tripa de rastro",price:0},
+{id:"cabeza-lengua",name:"Cabeza con lengua",price:0},
+{id:"cabeza-sin-lengua",name:"Cabeza sin lengua",price:0},
+{id:"lengua",name:"Lengua",price:0},
+{id:"higado",name:"Hígado",price:0},
+{id:"corazon",name:"Corazón",price:0},
+{id:"bofe",name:"Bofe",price:0},
+{id:"libro",name:"Libro",price:0},
+{id:"cuajo",name:"Cuajo",price:0},
+{id:"pata-blanca",name:"Pata blanca",price:0},
+{id:"pata-morena",name:"Pata morena",price:0},
+{id:"teleco",name:"Teleco",price:0},
+{id:"medula",name:"Médula",price:0},
+{id:"menudo-sucio",name:"Menudo sucio",price:0},
+{id:"panza-sucia",name:"Panza sucia",price:0},
+{id:"tripa-delgada",name:"Tripa delgada",price:0},
+{id:"tripa-gorda",name:"Tripa gorda",price:0},
+{id:"sesos",name:"Sesos",price:0},
+{id:"rinon",name:"Riñón",price:0},
+{id:"ubre",name:"Ubre",price:0},
+{id:"pescuezo",name:"Pescuezo",price:0},
+{id:"cachete",name:"Cachete",price:0}
+];
 const state={
-selectedUser:null,pin:"",
-users:JSON.parse(localStorage.getItem("c360_users"))||DEFAULT_USERS,
-clients:JSON.parse(localStorage.getItem("carniceria360_clients"))||[],
-products:JSON.parse(localStorage.getItem("c360_products"))||DEFAULT_PRODUCTS,
-clientPrices:JSON.parse(localStorage.getItem("c360_client_prices"))||{},
-notes:JSON.parse(localStorage.getItem("c360_credit_notes"))||[],
-payments:JSON.parse(localStorage.getItem("c360_payments"))||[],
-currentItems:[]
+clients:JSON.parse(localStorage.getItem("c360_clients_pdf"))||[],
+products:JSON.parse(localStorage.getItem("c360_products_pdf"))||DEFAULT_PRODUCTS,
+prices:JSON.parse(localStorage.getItem("c360_prices_pdf"))||{},
+notes:JSON.parse(localStorage.getItem("c360_notes_pdf"))||[],
+items:[]
 };
-
 const $=id=>document.getElementById(id);
-function save(){localStorage.setItem("c360_users",JSON.stringify(state.users));localStorage.setItem("carniceria360_clients",JSON.stringify(state.clients));localStorage.setItem("c360_products",JSON.stringify(state.products));localStorage.setItem("c360_client_prices",JSON.stringify(state.clientPrices));localStorage.setItem("c360_credit_notes",JSON.stringify(state.notes));localStorage.setItem("c360_payments",JSON.stringify(state.payments))}
-function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
-function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random()}
-function folio(){const d=new Date(),p=n=>String(n).padStart(2,"0");return `CR-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`}
-
-function renderProfiles(){
-$("profiles").innerHTML=state.users.map(u=>`<button class="profile-card" data-id="${u.id}"><div class="avatar">${u.initials}</div><h3>${esc(u.name)}</h3><span>${esc(u.role)}</span></button>`).join("");
-document.querySelectorAll(".profile-card").forEach(b=>b.onclick=()=>selectUser(+b.dataset.id))
+const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random();
+const save=()=>{localStorage.setItem("c360_clients_pdf",JSON.stringify(state.clients));localStorage.setItem("c360_products_pdf",JSON.stringify(state.products));localStorage.setItem("c360_prices_pdf",JSON.stringify(state.prices));localStorage.setItem("c360_notes_pdf",JSON.stringify(state.notes))};
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+function clientOptions(){return '<option value="">Selecciona cliente</option>'+state.clients.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")}
+function refreshSelects(){$("noteClient").innerHTML=clientOptions();$("priceClient").innerHTML=clientOptions();$("noteProduct").innerHTML=state.products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");updateNotePrice()}
+function effectivePrice(cid,pid){const s=state.prices?.[cid]?.[pid];if(s!==undefined&&s!=="")return Number(s);return Number(state.products.find(p=>p.id===pid)?.price||0)}
+function updateNotePrice(){$("notePrice").value=effectivePrice($("noteClient").value,$("noteProduct").value).toFixed(2)}
+function renderItems(){$("noteItems").innerHTML=state.items.length?state.items.map(i=>`<tr><td>${esc(i.name)}</td><td class="num">${i.qty.toFixed(3)}</td><td class="num">${money.format(i.price)}</td><td class="num">${money.format(i.amount)}</td><td><button class="danger" data-remove="${i.id}">Quitar</button></td></tr>`).join(""):'<tr><td colspan="5" class="num">Sin productos</td></tr>';document.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{state.items=state.items.filter(i=>i.id!==b.dataset.remove);renderItems()})}
+function renderClients(){$("clientList").innerHTML=state.clients.length?state.clients.map(c=>`<div class="panel" style="padding:14px;margin-top:10px"><strong>${esc(c.name)}</strong><span class="badge">${c.phone?esc(c.phone):"Sin teléfono"}</span></div>`).join(""):'<div class="empty">Sin clientes</div>'}
+function renderProducts(){$("productTable").innerHTML=state.products.map(p=>`<tr><td><input data-pname="${p.id}" value="${esc(p.name)}"></td><td><input data-pprice="${p.id}" type="number" step="0.01" min="0" value="${p.price}"></td><td><button class="secondary" data-update="${p.id}">Guardar</button> <button class="danger" data-delete="${p.id}">Eliminar</button></td></tr>`).join("");document.querySelectorAll("[data-update]").forEach(b=>b.onclick=()=>{const id=b.dataset.update,p=state.products.find(x=>x.id===id);p.name=document.querySelector(`[data-pname="${id}"]`).value.trim();p.price=Number(document.querySelector(`[data-pprice="${id}"]`).value||0);save();refreshSelects();renderProducts()});document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{state.products=state.products.filter(p=>p.id!==b.dataset.delete);save();refreshSelects();renderProducts()})}
+function renderPrices(){const cid=$("priceClient").value;$("priceTable").innerHTML=state.products.map(p=>`<tr><td>${esc(p.name)}</td><td>${money.format(p.price)}</td><td><input class="special" data-id="${p.id}" type="number" step="0.01" min="0" value="${state.prices?.[cid]?.[p.id]??""}" ${cid?"":"disabled"}></td></tr>`).join("")}
+function dateKey(d){const x=new Date(d);return x.toISOString().slice(0,10)}
+function generateReport(){
+const date=$("reportDate").value;
+const notes=state.notes.filter(n=>dateKey(n.createdAt)===date);
+const total=notes.reduce((s,n)=>s+n.total,0);
+const clientIds=[...new Set(notes.map(n=>n.clientId))];
+const productMap={};
+notes.forEach(n=>n.items.forEach(i=>{if(!productMap[i.productId])productMap[i.productId]={name:i.name,qty:0,total:0};productMap[i.productId].qty+=i.qty;productMap[i.productId].total+=i.amount}));
+const clientsHtml=clientIds.map(cid=>{
+ const cn=notes.filter(n=>n.clientId===cid);const name=cn[0]?.clientName||"Cliente";
+ return `<div class="client-block"><h3>${esc(name)}</h3>${cn.map(n=>`<div class="note-box"><div class="note-head"><span>${esc(n.folio)}</span><span>${new Date(n.createdAt).toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"})}</span></div><table class="pdf-table"><thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Importe</th></tr></thead><tbody>${n.items.map(i=>`<tr><td>${esc(i.name)}</td><td>${i.qty.toFixed(3)}</td><td>${money.format(i.price)}</td><td>${money.format(i.amount)}</td></tr>`).join("")}</tbody><tfoot><tr><th colspan="3">Total nota</th><th>${money.format(n.total)}</th></tr></tfoot></table></div>`).join("")}</div>`
+}).join("");
+const productsHtml=Object.values(productMap).map(p=>`<tr><td>${esc(p.name)}</td><td>${p.qty.toFixed(3)}</td><td>${money.format(p.total)}</td></tr>`).join("");
+$("pdfSheet").innerHTML=`<div class="pdf-header"><div><h1>Resumen General Diario</h1><p>Carnicería 360° — Notas a crédito</p></div><div class="pdf-meta"><strong>${new Date(date+"T12:00:00").toLocaleDateString("es-MX",{day:"2-digit",month:"long",year:"numeric"})}</strong><br>Generado ${new Date().toLocaleString("es-MX")}</div></div><div class="pdf-summary"><div class="pdf-card"><small>Notas</small><strong>${notes.length}</strong></div><div class="pdf-card"><small>Clientes</small><strong>${clientIds.length}</strong></div><div class="pdf-card"><small>Venta total</small><strong>${money.format(total)}</strong></div><div class="pdf-card"><small>Productos distintos</small><strong>${Object.keys(productMap).length}</strong></div></div>${notes.length?clientsHtml:'<div class="empty">No hay notas para esta fecha.</div>'}<div class="product-summary"><h3>Resumen por producto</h3><table class="pdf-table"><thead><tr><th>Producto</th><th>Cantidad total</th><th>Importe total</th></tr></thead><tbody>${productsHtml||'<tr><td colspan="3">Sin movimientos</td></tr>'}</tbody></table></div>`;
 }
-function selectUser(id){state.selectedUser=state.users.find(u=>u.id===id);state.pin="";updateDots();$("pinPanel").classList.remove("hidden");$("selectedUserText").textContent=`PIN de ${state.selectedUser.name}`;document.querySelectorAll(".profile-card").forEach(x=>x.classList.toggle("selected",+x.dataset.id===id))}
-function updateDots(){document.querySelectorAll(".pin-dot").forEach((d,i)=>d.classList.toggle("filled",i<state.pin.length))}
-function addPin(n){if(!state.selectedUser||state.pin.length>=4)return;state.pin+=n;updateDots();if(state.pin.length===4)setTimeout(login,100)}
-function login(){if(!state.selectedUser)return;if(state.pin!==state.selectedUser.pin){$("loginError").textContent="PIN incorrecto.";state.pin="";updateDots();return}sessionStorage.setItem("c360_session",state.selectedUser.id);openApp(state.selectedUser)}
-function isAdmin(){return state.selectedUser?.role==="Administrador"}
-function applyRolePermissions(){document.querySelectorAll(".admin-only").forEach(el=>el.classList.toggle("hidden-by-role",!isAdmin()))}
-function openApp(u){$("loginScreen").classList.add("hidden");$("appScreen").classList.remove("hidden");$("sideUserName").textContent=u.name;$("sideUserRole").textContent=u.role;$("miniAvatar").textContent=u.initials;$("welcomeText").textContent=`Bienvenido, ${u.name}.`;applyRolePermissions();showModule("inicio");updateStats()}
-function logout(){sessionStorage.removeItem("c360_session");location.reload()}
-
-function registerClient(e){
-e.preventDefault();const name=$("clientName").value.trim(),phone=$("clientPhone").value.trim(),m=$("clientMessage");m.className="form-message";m.textContent="";
-if(!name){m.classList.add("error");m.textContent="El nombre es obligatorio.";return}
-if(state.clients.some(c=>c.name.toLowerCase()===name.toLowerCase())){m.classList.add("error");m.textContent="Ya existe un cliente con ese nombre.";return}
-state.clients.push({id:uid(),name,phone,createdAt:new Date().toISOString()});save();e.target.reset();m.classList.add("success");m.textContent="Cliente guardado correctamente.";renderClients();refreshClientSelects();updateStats()
-}
-function clientTotals(cid){const purchased=state.notes.filter(n=>n.clientId===cid).reduce((s,n)=>s+Number(n.total||0),0);const paid=state.payments.filter(p=>p.clientId===cid).reduce((s,p)=>s+Number(p.amount||0),0);return {purchased,paid,balance:Math.max(0,purchased-paid)}}
-function renderClients(){
-$("clientsCount").textContent=`${state.clients.length} cliente${state.clients.length===1?"":"s"}`;
-$("clientsList").innerHTML=state.clients.length?state.clients.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>{const t=clientTotals(c.id);return `<div class="client-row"><div><strong>${esc(c.name)}</strong><small>${c.phone?`Tel. ${esc(c.phone)}`:"Sin teléfono"} · Compras ${money.format(t.purchased)} · Abonos ${money.format(t.paid)}</small></div><span class="client-balance">Saldo ${money.format(t.balance)}</span></div>`}).join(""):`<div class="empty">Todavía no hay clientes registrados.</div>`
-}
-function clientOptions(includeEmpty=true){return (includeEmpty?'<option value="">Selecciona un cliente</option>':'')+state.clients.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")}
-function refreshClientSelects(){const currentNote=$("noteClient").value,currentPrice=$("priceClient").value,currentAccount=$("accountClient")?.value||"";$("noteClient").innerHTML=clientOptions();$("priceClient").innerHTML=clientOptions();if($("accountClient"))$("accountClient").innerHTML=clientOptions();if(state.clients.some(c=>c.id===currentNote))$("noteClient").value=currentNote;if(state.clients.some(c=>c.id===currentPrice))$("priceClient").value=currentPrice;if(state.clients.some(c=>c.id===currentAccount))$("accountClient").value=currentAccount}
-function renderProductSelect(){$("noteProduct").innerHTML=state.products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");updatePriceForLine()}
-function effectivePrice(clientId,productId){const special=state.clientPrices?.[clientId]?.[productId];if(special!==undefined&&special!==null&&special!=="")return {price:Number(special),source:"Precio especial del cliente"};const p=state.products.find(x=>x.id===productId);return {price:Number(p?.price||0),source:"Precio general"}}
-function updatePriceForLine(){const cid=$("noteClient").value,pid=$("noteProduct").value;const ep=effectivePrice(cid,pid);$("notePrice").value=ep.price.toFixed(2);$("priceSource").textContent=cid?ep.source:"Precio general (selecciona cliente)"}
-function addItem(){
-const m=$("noteMessage"),pid=$("noteProduct").value,qty=Number($("noteQty").value),price=Number($("notePrice").value),product=state.products.find(p=>p.id===pid);m.className="form-message";m.textContent="";
-if(!$("noteClient").value){m.classList.add("error");m.textContent="Selecciona primero un cliente.";return}
-if(!product||!qty||qty<=0){m.classList.add("error");m.textContent="Captura una cantidad válida.";return}
-if(price<0||Number.isNaN(price)){m.classList.add("error");m.textContent="Captura un precio válido.";return}
-state.currentItems.push({id:uid(),productId:pid,name:product.name,qty,price,amount:qty*price});$("noteQty").value="";renderCurrentItems();$("noteQty").focus()
-}
-function renderCurrentItems(){
-$("noteItemsBody").innerHTML=state.currentItems.length?state.currentItems.map(i=>`<tr><td>${esc(i.name)}</td><td class="num">${i.qty.toFixed(3)}</td><td class="num">${money.format(i.price)}</td><td class="num">${money.format(i.amount)}</td><td><button class="remove-item" data-remove="${i.id}">✕</button></td></tr>`).join(""):`<tr><td colspan="5" style="text-align:center;color:var(--muted)">Sin productos agregados</td></tr>`;
-document.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{state.currentItems=state.currentItems.filter(i=>i.id!==b.dataset.remove);renderCurrentItems()});
-$("noteTotal").textContent=money.format(state.currentItems.reduce((s,i)=>s+i.amount,0))
-}
-function clearNote(){state.currentItems=[];$("noteClient").value="";$("noteQty").value="";$("noteObservations").value="";$("folioPreview").textContent=`Folio provisional: ${folio()}`;renderCurrentItems();updatePriceForLine()}
-function saveNote(){
-const cid=$("noteClient").value,m=$("noteMessage");m.className="form-message";m.textContent="";
-if(!cid){m.classList.add("error");m.textContent="Selecciona un cliente.";return}
-if(!state.currentItems.length){m.classList.add("error");m.textContent="Agrega al menos un producto.";return}
-const client=state.clients.find(c=>c.id===cid),total=state.currentItems.reduce((s,i)=>s+i.amount,0);
-state.notes.unshift({id:uid(),folio:folio(),clientId:cid,clientName:client.name,userId:state.selectedUser.id,userName:state.selectedUser.name,items:state.currentItems.map(x=>({...x})),observations:$("noteObservations").value.trim(),total,status:"pendiente",createdAt:new Date().toISOString()});
-save();m.classList.add("success");m.textContent="Nota a crédito guardada correctamente.";clearNote();updateStats()
-}
-function renderPrices(){
-const cid=$("priceClient").value;
-$("priceTableBody").innerHTML=state.products.map(p=>{const v=state.clientPrices?.[cid]?.[p.id];return `<tr><td><strong>${esc(p.name)}</strong></td><td>${money.format(p.price)}</td><td><input class="special-price" data-product="${p.id}" type="number" min="0" step="0.01" placeholder="${p.price.toFixed(2)}" value="${v??""}" ${cid?"":"disabled"}></td></tr>`}).join("");
-$("priceMessage").textContent=cid?"Deja vacío para que use el precio general.":"Selecciona un cliente para editar sus precios."; $("priceMessage").className="form-message"
-}
-function savePrices(){
-const cid=$("priceClient").value,m=$("priceMessage");if(!cid){m.className="form-message error";m.textContent="Selecciona un cliente.";return}
-state.clientPrices[cid]=state.clientPrices[cid]||{};
-document.querySelectorAll(".special-price").forEach(inp=>{const v=inp.value.trim();if(v==="")delete state.clientPrices[cid][inp.dataset.product];else state.clientPrices[cid][inp.dataset.product]=Number(v)});
-save();m.className="form-message success";m.textContent="Precios especiales guardados.";if($("noteClient").value===cid)updatePriceForLine()
-}
-function renderHistory(){
-const cid=$("accountClient").value;
-$("paymentBox").classList.toggle("hidden",!cid);
-if(!cid){
- const totalPurchased=state.notes.reduce((s,n)=>s+Number(n.total||0),0),totalPaid=state.payments.reduce((s,p)=>s+Number(p.amount||0),0),balance=Math.max(0,totalPurchased-totalPaid);
- $("accountSummary").innerHTML=`<div class="account-card"><small>Crédito otorgado</small><strong>${money.format(totalPurchased)}</strong></div><div class="account-card"><small>Abonos recibidos</small><strong>${money.format(totalPaid)}</strong></div><div class="account-card balance"><small>Saldo total pendiente</small><strong>${money.format(balance)}</strong></div>`;
- const clientRows=state.clients.map(c=>{const t=clientTotals(c.id);return {c,t}}).filter(x=>x.t.purchased||x.t.paid).sort((a,b)=>b.t.balance-a.t.balance);
- $("notesList").innerHTML=clientRows.length?clientRows.map(({c,t})=>`<div class="movement credit"><div class="movement-head" data-client-open="${c.id}"><div><strong>${esc(c.name)}</strong><div class="movement-meta">Compras ${money.format(t.purchased)} · Abonos ${money.format(t.paid)}</div></div><div class="movement-amount"><strong>${money.format(t.balance)}</strong><span>Saldo pendiente</span></div></div></div>`).join(""):`<div class="empty">Todavía no existen movimientos de crédito.</div>`;
- document.querySelectorAll("[data-client-open]").forEach(x=>x.onclick=()=>{$("accountClient").value=x.dataset.clientOpen;renderHistory()});return;
-}
-const client=state.clients.find(c=>c.id===cid),t=clientTotals(cid);
-$("accountSummary").innerHTML=`<div class="account-card"><small>Total comprado</small><strong>${money.format(t.purchased)}</strong></div><div class="account-card"><small>Total abonado</small><strong>${money.format(t.paid)}</strong></div><div class="account-card balance"><small>Saldo actual</small><strong>${money.format(t.balance)}</strong></div>`;
-const movements=[...state.notes.filter(n=>n.clientId===cid).map(n=>({...n,type:"credit",date:n.createdAt})),...state.payments.filter(p=>p.clientId===cid).map(p=>({...p,type:"payment",date:p.createdAt}))].sort((a,b)=>new Date(b.date)-new Date(a.date));
-let running=0;const chronological=[...movements].sort((a,b)=>new Date(a.date)-new Date(b.date));chronological.forEach(m=>{running+=m.type==="credit"?Number(m.total): -Number(m.amount);m.running=Math.max(0,running)});
-$("notesList").innerHTML=movements.length?movements.map(m=>m.type==="credit"?`<div class="movement credit"><div class="movement-head" data-toggle-movement><div><strong>Nota ${esc(m.folio)}</strong><div class="movement-meta">${new Date(m.createdAt).toLocaleString("es-MX")} · Capturó ${esc(m.userName)}</div></div><div class="movement-amount"><strong>+ ${money.format(m.total)}</strong><span>Compra a crédito</span></div></div><div class="movement-detail"><table class="detail-table"><thead><tr><th>Producto</th><th class="num">Cantidad</th><th class="num">Precio</th><th class="num">Importe</th></tr></thead><tbody>${m.items.map(i=>`<tr><td>${esc(i.name)}</td><td class="num">${Number(i.qty).toFixed(3)}</td><td class="num">${money.format(i.price)}</td><td class="num">${money.format(i.amount)}</td></tr>`).join("")}</tbody></table>${m.observations?`<p><strong>Observaciones:</strong> ${esc(m.observations)}</p>`:""}</div></div>`:`<div class="movement payment"><div class="movement-head" data-toggle-movement><div><strong>Abono · ${esc(m.method)}</strong><div class="movement-meta">${new Date(m.createdAt).toLocaleString("es-MX")} · Registró ${esc(m.userName)}${m.reference?` · ${esc(m.reference)}`:""}</div></div><div class="movement-amount"><strong>- ${money.format(m.amount)}</strong><span>Pago recibido</span></div></div><div class="movement-detail"><p><strong>Cliente:</strong> ${esc(client.name)}</p><p><strong>Forma de pago:</strong> ${esc(m.method)}</p>${m.reference?`<p><strong>Referencia:</strong> ${esc(m.reference)}</p>`:""}</div></div>`).join(""):`<div class="empty">Este cliente todavía no tiene movimientos.</div>`;
-document.querySelectorAll("[data-toggle-movement]").forEach(h=>h.onclick=()=>h.parentElement.classList.toggle("open"));
-}
-function savePayment(){
-const cid=$("accountClient").value,amount=Number($("paymentAmount").value),method=$("paymentMethod").value,reference=$("paymentReference").value.trim(),m=$("paymentMessage");m.className="form-message";m.textContent="";
-if(!cid){m.classList.add("error");m.textContent="Selecciona un cliente.";return}const balance=clientTotals(cid).balance;if(!amount||amount<=0){m.classList.add("error");m.textContent="Captura un abono válido.";return}if(amount>balance){m.classList.add("error");m.textContent=`El abono no puede superar el saldo de ${money.format(balance)}.`;return}
-const client=state.clients.find(c=>c.id===cid);state.payments.unshift({id:uid(),clientId:cid,clientName:client.name,amount,method,reference,userId:state.selectedUser.id,userName:state.selectedUser.name,createdAt:new Date().toISOString()});save();$("paymentAmount").value="";$("paymentReference").value="";m.classList.add("success");m.textContent="Abono registrado correctamente.";renderHistory();renderClients();updateStats()
-}
-
-function renderProductAdmin(){
- if(!isAdmin())return;
- $("productAdminList").innerHTML=state.products.length?state.products.map(p=>`<div class="product-admin-row"><input class="edit-product-name" data-id="${p.id}" value="${esc(p.name)}"><input class="edit-product-price" data-id="${p.id}" type="number" min="0" step="0.01" value="${Number(p.price).toFixed(2)}"><button class="danger-mini" data-delete-product="${p.id}">Eliminar</button></div>`).join(""):`<div class="empty">No hay productos registrados.</div>`;
- document.querySelectorAll(".edit-product-name,.edit-product-price").forEach(inp=>inp.onchange=()=>{const p=state.products.find(x=>x.id===inp.dataset.id);if(!p)return;if(inp.classList.contains("edit-product-name")){const name=inp.value.trim();if(name)p.name=name;else inp.value=p.name}else{const value=Number(inp.value);if(value>=0)p.price=value;else inp.value=p.price}save();renderProductSelect();renderPrices();updateStats()});
- document.querySelectorAll("[data-delete-product]").forEach(btn=>btn.onclick=()=>{const id=btn.dataset.deleteProduct;if(state.notes.some(n=>n.items.some(i=>i.productId===id))){$("productAdminMessage").className="form-message error";$("productAdminMessage").textContent="No se puede eliminar porque el producto ya aparece en notas.";return}state.products=state.products.filter(p=>p.id!==id);Object.values(state.clientPrices).forEach(map=>delete map[id]);save();renderProductAdmin();renderProductSelect();renderPrices();updateStats()})
-}
-function addProduct(){
- if(!isAdmin())return;const name=$("newProductName").value.trim(),price=Number($("newProductPrice").value),m=$("productAdminMessage");m.className="form-message";m.textContent="";
- if(!name){m.classList.add("error");m.textContent="Captura el nombre del producto.";return}if(Number.isNaN(price)||price<0){m.classList.add("error");m.textContent="Captura un precio válido.";return}if(state.products.some(p=>p.name.toLowerCase()===name.toLowerCase())){m.classList.add("error");m.textContent="Ese producto ya existe.";return}
- state.products.push({id:uid(),name,price});save();$("newProductName").value="";$("newProductPrice").value="";m.classList.add("success");m.textContent="Producto agregado correctamente.";renderProductAdmin();renderProductSelect();renderPrices();updateStats()
-}
-function localDateKey(value){const d=new Date(value);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
-function renderDailySummary(){
- if(!isAdmin())return;const date=$("dailyDate").value;const notes=state.notes.filter(n=>localDateKey(n.createdAt)===date);const payments=state.payments.filter(p=>localDateKey(p.createdAt)===date);const sales=notes.reduce((s,n)=>s+Number(n.total),0),paid=payments.reduce((s,p)=>s+Number(p.amount),0);const clients=[...new Set(notes.map(n=>n.clientId))];
- $("dailySummaryCards").innerHTML=`<div class="daily-card"><small>Notas del día</small><strong>${notes.length}</strong></div><div class="daily-card"><small>Clientes atendidos</small><strong>${clients.length}</strong></div><div class="daily-card"><small>Venta a crédito</small><strong>${money.format(sales)}</strong></div><div class="daily-card"><small>Abonos recibidos</small><strong>${money.format(paid)}</strong></div>`;
- const groups=clients.map(cid=>{const clientNotes=notes.filter(n=>n.clientId===cid),client=state.clients.find(c=>c.id===cid),total=clientNotes.reduce((s,n)=>s+Number(n.total),0);return `<div class="daily-client"><div class="daily-client-head"><div><strong>${esc(client?.name||clientNotes[0]?.clientName||"Cliente")}</strong><small>${clientNotes.length} nota${clientNotes.length===1?"":"s"}</small></div><strong>${money.format(total)}</strong></div><div class="daily-client-body">${clientNotes.map(n=>`<h4>${esc(n.folio)} · ${new Date(n.createdAt).toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"})}</h4><table class="detail-table"><thead><tr><th>Producto</th><th class="num">Cantidad</th><th class="num">Precio</th><th class="num">Importe</th></tr></thead><tbody>${n.items.map(i=>`<tr><td>${esc(i.name)}</td><td class="num">${Number(i.qty).toFixed(3)}</td><td class="num">${money.format(i.price)}</td><td class="num">${money.format(i.amount)}</td></tr>`).join("")}</tbody></table>`).join("")}</div></div>`}).join("");
- const productMap={};notes.forEach(n=>n.items.forEach(i=>{productMap[i.name]=(productMap[i.name]||0)+Number(i.qty)}));const productRows=Object.entries(productMap).sort((a,b)=>a[0].localeCompare(b[0])).map(([name,qty])=>`<tr><td>${esc(name)}</td><td class="num">${qty.toFixed(3)}</td></tr>`).join("");
- $("dailySummaryList").innerHTML=groups||`<div class="empty">No hay notas en esta fecha.</div>`;if(notes.length)$("dailySummaryList").innerHTML+=`<div class="daily-totals"><h3>Resumen por producto</h3><table class="detail-table"><thead><tr><th>Producto</th><th class="num">Cantidad total</th></tr></thead><tbody>${productRows}</tbody></table><h3 style="text-align:right">Saldo generado del día: ${money.format(Math.max(0,sales-paid))}</h3></div>`
-}
-
-function updateStats(){$("statSales").textContent=money.format(Math.max(0,state.notes.reduce((s,n)=>s+n.total,0)-state.payments.reduce((s,p)=>s+p.amount,0)));$("statNotes").textContent=state.notes.length;$("statClients").textContent=state.clients.length;$("statProducts").textContent=state.products.length}
-const moduleInfo={inicio:["Inicio","Resumen general del sistema."],"nueva-nota":["Nota a crédito","Captura productos, cantidades y precios para generar el saldo del cliente."],clientes:["Clientes","Registra clientes con nombre obligatorio y teléfono opcional."],precios:["Ajustar precios","Asigna precios distintos para cada cliente."],historial:["Control de crédito","Consulta notas detalladas, saldos y registra abonos."],"productos-admin":["Productos y precios","Alta, edición y eliminación de productos y precios generales."],"resumen-diario":["Resumen general diario","Todas las notas, clientes, productos y abonos de una fecha."]};
-function showModule(mod){
-if((mod==="productos-admin"||mod==="resumen-diario")&&!isAdmin()){alert("Esta función es exclusiva del administrador.");return}
-$("moduleTitle").textContent=moduleInfo[mod][0];document.querySelectorAll(".menu button").forEach(b=>b.classList.toggle("active",b.dataset.module===mod));
-$("dashboardContent").classList.toggle("hidden",mod!=="inicio");$("moduleContent").classList.toggle("hidden",mod==="inicio");
-["clientsModule","noteModule","pricesModule","historyModule","productsAdminModule","dailySummaryModule"].forEach(id=>$(id).classList.add("hidden"));
-if(mod!=="inicio"){$("moduleHeading").textContent=moduleInfo[mod][0];$("moduleDescription").textContent=moduleInfo[mod][1]}
-if(mod==="clientes"){ $("clientsModule").classList.remove("hidden");renderClients()}
-if(mod==="nueva-nota"){ $("noteModule").classList.remove("hidden");refreshClientSelects();renderProductSelect();$("folioPreview").textContent=`Folio provisional: ${folio()}`;renderCurrentItems()}
-if(mod==="precios"){ $("pricesModule").classList.remove("hidden");refreshClientSelects();renderPrices()}
-if(mod==="historial"){ $("historyModule").classList.remove("hidden");refreshClientSelects();renderHistory()}
-if(mod==="productos-admin"){ $("productsAdminModule").classList.remove("hidden");renderProductAdmin()}
-if(mod==="resumen-diario"){ $("dailySummaryModule").classList.remove("hidden");if(!$("dailyDate").value)$("dailyDate").value=localDateKey(new Date());renderDailySummary()}
-}
-document.querySelectorAll("[data-number]").forEach(b=>b.onclick=()=>addPin(b.dataset.number));$("clearPin").onclick=()=>{state.pin="";updateDots()};$("enterBtn").onclick=login;$("logoutBtn").onclick=logout;
-$("clientForm").onsubmit=registerClient;$("noteClient").onchange=updatePriceForLine;$("noteProduct").onchange=updatePriceForLine;$("addItemBtn").onclick=addItem;$("clearNoteBtn").onclick=clearNote;$("saveNoteBtn").onclick=saveNote;$("priceClient").onchange=renderPrices;$("savePricesBtn").onclick=savePrices;$("accountClient").onchange=renderHistory;$("showAllAccountsBtn").onclick=()=>{$("accountClient").value="";renderHistory()};$("savePaymentBtn").onclick=savePayment;$("addProductBtn").onclick=addProduct;$("refreshDailyBtn").onclick=renderDailySummary;$("dailyDate").onchange=renderDailySummary;
-document.querySelectorAll(".menu button").forEach(b=>b.onclick=()=>showModule(b.dataset.module));document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>showModule(b.dataset.go));
-document.addEventListener("keydown",e=>{if(!$("loginScreen").classList.contains("hidden")){if(/^\d$/.test(e.key))addPin(e.key);if(e.key==="Enter")login()}});
-$("currentDate").textContent=new Date().toLocaleDateString("es-MX",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
-save();renderProfiles();refreshClientSelects();renderProductSelect();renderCurrentItems();updateStats();
-const sid=Number(sessionStorage.getItem("c360_session"));const su=state.users.find(u=>u.id===sid);if(su){state.selectedUser=su;openApp(su)}
+document.querySelectorAll(".menu button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".menu button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".module").forEach(m=>m.classList.add("hidden"));$(b.dataset.module).classList.remove("hidden");const map={notas:["Notas a crédito","Captura ventas con precios por cliente."],clientes:["Clientes","Alta y consulta de clientes."],productos:["Productos","Catálogo editable de vísceras."],precios:["Precios especiales","Precios distintos por cliente."],resumen:["Resumen diario PDF","Hoja imprimible con todos los pedidos del día."]};$("title").textContent=map[b.dataset.module][0];$("subtitle").textContent=map[b.dataset.module][1];if(b.dataset.module==="productos")renderProducts();if(b.dataset.module==="precios")renderPrices();if(b.dataset.module==="resumen")generateReport()});
+$("saveClient").onclick=()=>{const name=$("clientName").value.trim();if(!name){$("clientMessage").textContent="El nombre es obligatorio.";$("clientMessage").className="message error";return}state.clients.push({id:uid(),name,phone:$("clientPhone").value.trim()});save();$("clientName").value="";$("clientPhone").value="";$("clientMessage").textContent="Cliente guardado.";$("clientMessage").className="message ok";renderClients();refreshSelects()};
+$("saveProduct").onclick=()=>{const name=$("productName").value.trim(),price=Number($("productPrice").value||0);if(!name){$("productMessage").textContent="Escribe el nombre del producto.";$("productMessage").className="message error";return}state.products.push({id:uid(),name,price});save();$("productName").value="";$("productPrice").value="";renderProducts();refreshSelects()};
+$("addItem").onclick=()=>{const cid=$("noteClient").value,pid=$("noteProduct").value,qty=Number($("noteQty").value),price=Number($("notePrice").value),p=state.products.find(x=>x.id===pid);if(!cid||!qty||qty<=0){$("noteMessage").textContent="Selecciona cliente y captura cantidad.";$("noteMessage").className="message error";return}state.items.push({id:uid(),productId:pid,name:p.name,qty,price,amount:qty*price});$("noteQty").value="";renderItems()};
+$("saveNote").onclick=()=>{const cid=$("noteClient").value,c=state.clients.find(x=>x.id===cid);if(!cid||!state.items.length){$("noteMessage").textContent="Falta cliente o productos.";$("noteMessage").className="message error";return}state.notes.push({id:uid(),folio:"CR-"+Date.now(),clientId:cid,clientName:c.name,items:[...state.items],total:state.items.reduce((s,i)=>s+i.amount,0),createdAt:new Date().toISOString()});state.items=[];save();renderItems();$("noteMessage").textContent="Nota guardada.";$("noteMessage").className="message ok"};
+$("clearNote").onclick=()=>{state.items=[];renderItems()};
+$("noteClient").onchange=updateNotePrice;$("noteProduct").onchange=updateNotePrice;$("priceClient").onchange=renderPrices;
+$("savePrices").onclick=()=>{const cid=$("priceClient").value;if(!cid)return;state.prices[cid]=state.prices[cid]||{};document.querySelectorAll(".special").forEach(i=>{if(i.value==="")delete state.prices[cid][i.dataset.id];else state.prices[cid][i.dataset.id]=Number(i.value)});save();$("priceMessage").textContent="Precios guardados.";$("priceMessage").className="message ok"};
+$("generateReport").onclick=generateReport;$("printReport").onclick=()=>window.print();
+$("reportDate").value=new Date().toISOString().slice(0,10);
+save();refreshSelects();renderItems();renderClients();renderProducts();renderPrices();generateReport();
 </script>
 </body>
 </html>
