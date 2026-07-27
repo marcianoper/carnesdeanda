@@ -195,10 +195,43 @@ th{font-size:12px;text-transform:uppercase;color:var(--muted)}
   #pdfSheet{position:absolute;left:0;top:0;width:210mm;min-height:297mm;box-shadow:none;margin:0}
   @page{size:A4;margin:0}
 }
+
+.login-screen{min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,#241b19,#7d171b)}
+.login-card{width:min(920px,100%);background:#fff;border-radius:26px;padding:28px;box-shadow:0 24px 70px rgba(0,0,0,.28)}
+.login-card h1{margin:0 0 6px;text-align:center}.login-card>p{text-align:center;color:var(--muted);margin:0 0 24px}
+.profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px}
+.profile-card{border:2px solid var(--line);background:#fff;border-radius:20px;padding:16px;cursor:pointer;text-align:center;transition:.18s}
+.profile-card:hover{transform:translateY(-3px);border-color:var(--p);box-shadow:0 10px 24px rgba(125,23,27,.12)}
+.profile-photo{width:96px;height:96px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;background:#eee7e2;font-size:42px;overflow:hidden;border:4px solid #fff;box-shadow:0 0 0 2px var(--line)}
+.profile-photo img{width:100%;height:100%;object-fit:cover}
+.profile-card strong{display:block;font-size:17px}.profile-card small{display:block;color:var(--muted);margin-top:4px}
+.login-pin{max-width:420px;margin:22px auto 0;padding-top:20px;border-top:1px solid var(--line)}
+.login-pin h3{text-align:center;margin:0 0 12px}.pin-row{display:flex;gap:10px}.pin-row input{flex:1;min-width:0;text-align:center;letter-spacing:8px;font-size:24px;font-weight:800}
+.login-back{margin-top:10px;width:100%}
+.logout-btn{border:0;background:#fff1f0;color:var(--bad);border-radius:10px;padding:8px 11px;font-weight:800;cursor:pointer;margin-left:8px}
+@media(max-width:600px){.login-card{padding:20px 14px}.profile-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.profile-photo{width:78px;height:78px}.pin-row{flex-direction:column}}
+
 </style>
 </head>
 <body>
-<div class="app">
+
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <h1>Selecciona tu perfil</h1>
+    <p>Los operadores entran directamente. Los administradores necesitan código.</p>
+    <div id="profileGrid" class="profile-grid"></div>
+    <div id="adminPinBox" class="login-pin hidden">
+      <h3 id="pinTitle">Código de administrador</h3>
+      <div class="pin-row">
+        <input id="adminPin" type="password" inputmode="numeric" maxlength="6" placeholder="••••">
+        <button id="enterAdmin" class="primary">Entrar</button>
+      </div>
+      <div id="loginMessage" class="message"></div>
+      <button id="cancelAdmin" class="secondary login-back">Volver a perfiles</button>
+    </div>
+  </div>
+</div>
+<div id="appRoot" class="app hidden">
   <aside class="sidebar">
     <div class="brand"><div class="logo">🥩</div><div><strong>Carnicería 360°</strong><small>Control de crédito</small></div></div>
     <nav class="menu">
@@ -214,7 +247,7 @@ th{font-size:12px;text-transform:uppercase;color:var(--muted)}
   <main class="content">
     <div class="topbar">
       <div><h1 id="title">Notas a crédito</h1><p id="subtitle">Captura ventas con precios por cliente.</p></div>
-      <div class="user-chip">Administrador</div>
+      <div><span id="syncStatus" class="badge" style="margin-right:8px">Preparando sincronización…</span><div class="user-chip" style="display:inline-block"><span id="currentUserLabel">Usuario</span><button id="logoutBtn" class="logout-btn">Salir</button></div></div>
     </div>
 
     <section id="notas" class="module panel">
@@ -345,223 +378,217 @@ th{font-size:12px;text-transform:uppercase;color:var(--muted)}
   </main>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const money=new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN"});
-const DEFAULT_PRODUCTS=[
-{id:"menudo",name:"Menudo",price:0},
-{id:"panza",name:"Panza de res",price:0},
-{id:"tripa",name:"Tripa completa",price:0},
-{id:"tripa-rastro",name:"Tripa de rastro",price:0},
-{id:"cabeza-lengua",name:"Cabeza con lengua",price:0},
-{id:"cabeza-sin-lengua",name:"Cabeza sin lengua",price:0},
-{id:"lengua",name:"Lengua",price:0},
-{id:"higado",name:"Hígado",price:0},
-{id:"corazon",name:"Corazón",price:0},
-{id:"bofe",name:"Bofe",price:0},
-{id:"libro",name:"Libro",price:0},
-{id:"cuajo",name:"Cuajo",price:0},
-{id:"pata-blanca",name:"Pata blanca",price:0},
-{id:"pata-morena",name:"Pata morena",price:0},
-{id:"teleco",name:"Teleco",price:0},
-{id:"medula",name:"Médula",price:0},
-{id:"menudo-sucio",name:"Menudo sucio",price:0},
-{id:"panza-sucia",name:"Panza sucia",price:0},
-{id:"tripa-delgada",name:"Tripa delgada",price:0},
-{id:"tripa-gorda",name:"Tripa gorda",price:0},
-{id:"sesos",name:"Sesos",price:0},
-{id:"rinon",name:"Riñón",price:0},
-{id:"ubre",name:"Ubre",price:0},
-{id:"pescuezo",name:"Pescuezo",price:0},
-{id:"cachete",name:"Cachete",price:0}
+const USERS=[
+  {id:"operador-1",name:"Operador 1",role:"operator",photo:""},
+  {id:"operador-2",name:"Operador 2",role:"operator",photo:""},
+  {id:"admin-1",name:"Administrador",role:"admin",photo:"",pin:"2580"}
 ];
-const state={
-clients:JSON.parse(localStorage.getItem("c360_clients_pdf"))||[],
-products:JSON.parse(localStorage.getItem("c360_products_pdf"))||DEFAULT_PRODUCTS,
-prices:JSON.parse(localStorage.getItem("c360_prices_pdf"))||{},
-notes:JSON.parse(localStorage.getItem("c360_notes_pdf"))||[],
-inventory:JSON.parse(localStorage.getItem("c360_inventory_moves"))||[],
-items:[]
+let selectedAdmin=null;
+let currentUser=null;
+function renderProfiles(){
+  const grid=document.getElementById("profileGrid");
+  grid.innerHTML=USERS.map(u=>`<button class="profile-card" data-user="${u.id}"><div class="profile-photo">${u.photo?`<img src="${u.photo}" alt="${u.name}">`:(u.role==="admin"?"🔐":"👤")}</div><strong>${u.name}</strong><small>${u.role==="admin"?"Administrador":"Operador"}</small></button>`).join("");
+  grid.querySelectorAll("[data-user]").forEach(btn=>btn.onclick=()=>selectProfile(btn.dataset.user));
+}
+function selectProfile(id){
+  const user=USERS.find(u=>u.id===id); if(!user)return;
+  if(user.role==="admin"){
+    selectedAdmin=user;
+    document.getElementById("profileGrid").classList.add("hidden");
+    document.getElementById("adminPinBox").classList.remove("hidden");
+    document.getElementById("pinTitle").textContent=`Código de ${user.name}`;
+    document.getElementById("adminPin").value="";
+    document.getElementById("adminPin").focus();
+  }else enterApp(user);
+}
+function enterApp(user){
+  currentUser=user;
+  sessionStorage.setItem("c360_session",JSON.stringify({id:user.id}));
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("appRoot").classList.remove("hidden");
+  document.getElementById("currentUserLabel").textContent=`${user.name} · ${user.role==="admin"?"Administrador":"Operador"}`;
+  applyPermissions();
+}
+function applyPermissions(){
+  const admin=currentUser?.role==="admin";
+  document.querySelectorAll('.menu button').forEach(btn=>{
+    const allowed=admin||btn.dataset.module==="notas";
+    btn.classList.toggle("hidden",!allowed);
+  });
+  if(!admin){
+    document.querySelectorAll('.module').forEach(m=>m.classList.add('hidden'));
+    document.getElementById('notas').classList.remove('hidden');
+    document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('active'));
+    document.querySelector('[data-module="notas"]').classList.add('active');
+    document.getElementById('title').textContent='Notas a crédito';
+    document.getElementById('subtitle').textContent='Captura ventas con precios por cliente.';
+  }
+}
+function logout(){
+  currentUser=null;selectedAdmin=null;sessionStorage.removeItem("c360_session");
+  document.getElementById("appRoot").classList.add("hidden");
+  document.getElementById("loginScreen").classList.remove("hidden");
+  document.getElementById("profileGrid").classList.remove("hidden");
+  document.getElementById("adminPinBox").classList.add("hidden");
+  document.getElementById("loginMessage").textContent="";
+}
+document.getElementById("enterAdmin").onclick=()=>{
+  const pin=document.getElementById("adminPin").value;
+  if(selectedAdmin&&pin===selectedAdmin.pin){enterApp(selectedAdmin);document.getElementById("loginMessage").textContent="";}
+  else{document.getElementById("loginMessage").textContent="Código incorrecto.";document.getElementById("loginMessage").className="message error";}
 };
+document.getElementById("adminPin").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("enterAdmin").click()});
+document.getElementById("cancelAdmin").onclick=()=>{selectedAdmin=null;document.getElementById("profileGrid").classList.remove("hidden");document.getElementById("adminPinBox").classList.add("hidden");document.getElementById("loginMessage").textContent="";};
+document.getElementById("logoutBtn").onclick=logout;
+renderProfiles();
+const savedSession=JSON.parse(sessionStorage.getItem("c360_session")||"null");
+if(savedSession){const u=USERS.find(x=>x.id===savedSession.id);if(u)enterApp(u)}
+
+const money=new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN"});
+
+/* =========================================================
+   CONFIGURACIÓN SUPABASE
+   1) Crea el proyecto y ejecuta el archivo SQL entregado.
+   2) Copia aquí Project URL y anon public key.
+   ========================================================= */
+const SUPABASE_URL="https://bjebybdqcqscouxlinfd.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqZWJ5YmRxY3FzY291eGxpbmZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMjQ3MTksImV4cCI6MjA3MTkwMDcxOX0.mQgWtiYEyJTiF04pdcLv63SqPNrU1Iehws0vKqr82O0";
+const CLOUD_ENABLED=SUPABASE_URL.startsWith("https://")&&!SUPABASE_URL.includes("PEGA_AQUI")&&SUPABASE_ANON_KEY.length>40;
+const db=CLOUD_ENABLED?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+
+const DEFAULT_PRODUCTS=[
+{id:"menudo",name:"Menudo",price:0},{id:"panza",name:"Panza de res",price:0},{id:"tripa",name:"Tripa completa",price:0},
+{id:"tripa-rastro",name:"Tripa de rastro",price:0},{id:"cabeza-lengua",name:"Cabeza con lengua",price:0},
+{id:"cabeza-sin-lengua",name:"Cabeza sin lengua",price:0},{id:"lengua",name:"Lengua",price:0},{id:"higado",name:"Hígado",price:0},
+{id:"corazon",name:"Corazón",price:0},{id:"bofe",name:"Bofe",price:0},{id:"libro",name:"Libro",price:0},{id:"cuajo",name:"Cuajo",price:0},
+{id:"pata-blanca",name:"Pata blanca",price:0},{id:"pata-morena",name:"Pata morena",price:0},{id:"teleco",name:"Teleco",price:0},
+{id:"medula",name:"Médula",price:0},{id:"menudo-sucio",name:"Menudo sucio",price:0},{id:"panza-sucia",name:"Panza sucia",price:0},
+{id:"tripa-delgada",name:"Tripa delgada",price:0},{id:"tripa-gorda",name:"Tripa gorda",price:0},{id:"sesos",name:"Sesos",price:0},
+{id:"rinon",name:"Riñón",price:0},{id:"ubre",name:"Ubre",price:0},{id:"pescuezo",name:"Pescuezo",price:0},{id:"cachete",name:"Cachete",price:0}
+];
+
+const state={clients:[],products:[],prices:{},notes:[],inventory:[],items:[]};
 const $=id=>document.getElementById(id);
 const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random();
-const save=()=>{localStorage.setItem("c360_clients_pdf",JSON.stringify(state.clients));localStorage.setItem("c360_products_pdf",JSON.stringify(state.products));localStorage.setItem("c360_prices_pdf",JSON.stringify(state.prices));localStorage.setItem("c360_notes_pdf",JSON.stringify(state.notes));localStorage.setItem("c360_inventory_moves",JSON.stringify(state.inventory))};
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+let reloadTimer=null;
+
+function setSync(text,type=""){
+  const el=$("syncStatus"); if(!el)return;
+  el.textContent=text;
+  el.style.background=type==="ok"?"#dcfce7":type==="error"?"#fee2e2":"#f2e7e4";
+  el.style.color=type==="ok"?"#166534":type==="error"?"#991b1b":"#5b4c46";
+}
+function localBackup(){
+  localStorage.setItem("c360_realtime_backup",JSON.stringify({clients:state.clients,products:state.products,prices:state.prices,notes:state.notes,inventory:state.inventory}));
+}
+function loadLocalBackup(){
+  const old={
+    clients:JSON.parse(localStorage.getItem("c360_clients_pdf")||"[]"),
+    products:JSON.parse(localStorage.getItem("c360_products_pdf")||"null"),
+    prices:JSON.parse(localStorage.getItem("c360_prices_pdf")||"{}"),
+    notes:JSON.parse(localStorage.getItem("c360_notes_pdf")||"[]"),
+    inventory:JSON.parse(localStorage.getItem("c360_inventory_moves")||"[]")
+  };
+  const b=JSON.parse(localStorage.getItem("c360_realtime_backup")||"null")||old;
+  state.clients=b.clients||[]; state.products=b.products?.length?b.products:DEFAULT_PRODUCTS;
+  state.prices=b.prices||{}; state.notes=b.notes||[]; state.inventory=b.inventory||[];
+}
+function renderAll(){refreshSelects();renderItems();renderClients();renderProducts();renderPrices();renderInventory();generateReport();localBackup()}
+
+async function loadCloudData(showStatus=true){
+  if(!CLOUD_ENABLED){loadLocalBackup();renderAll();setSync("Modo local: falta configurar Supabase","error");return}
+  if(showStatus)setSync("Sincronizando…");
+  const [clients,products,prices,notes,inventory]=await Promise.all([
+    db.from("c360_clients").select("*").order("name"),
+    db.from("c360_products").select("*").order("name"),
+    db.from("c360_prices").select("*"),
+    db.from("c360_notes").select("*").order("created_at",{ascending:false}),
+    db.from("c360_inventory").select("*").order("created_at",{ascending:false})
+  ]);
+  const error=[clients,products,prices,notes,inventory].find(x=>x.error)?.error;
+  if(error){console.error(error);loadLocalBackup();renderAll();setSync("Sin conexión: usando respaldo local","error");return}
+  state.clients=clients.data.map(x=>({id:x.id,name:x.name,phone:x.phone||""}));
+  state.products=products.data.map(x=>({id:x.id,name:x.name,price:Number(x.price||0)}));
+  state.prices={}; prices.data.forEach(x=>{state.prices[x.client_id]??={};state.prices[x.client_id][x.product_id]=Number(x.price)});
+  state.notes=notes.data.map(x=>({id:x.id,folio:x.folio,clientId:x.client_id,clientName:x.client_name,items:x.items||[],total:Number(x.total||0),createdAt:x.created_at}));
+  state.inventory=inventory.data.map(x=>({id:x.id,type:x.type,date:x.move_date,productId:x.product_id,productName:x.product_name,unit:x.unit,qty:Number(x.qty),unitCost:Number(x.unit_cost||0),supplier:x.supplier||"",lot:x.lot||"",reference:x.reference||"",reason:x.reason||"",notes:x.notes||"",createdAt:x.created_at}));
+  if(!state.products.length){
+    await db.from("c360_products").insert(DEFAULT_PRODUCTS.map(p=>({id:p.id,name:p.name,price:p.price})));
+    state.products=[...DEFAULT_PRODUCTS];
+  }
+  renderAll();setSync("Actualizado en tiempo real","ok");
+}
+function scheduleReload(){clearTimeout(reloadTimer);reloadTimer=setTimeout(()=>loadCloudData(false),220)}
+function startRealtime(){
+  if(!CLOUD_ENABLED)return;
+  db.channel("c360-live")
+    .on("postgres_changes",{event:"*",schema:"public",table:"c360_clients"},scheduleReload)
+    .on("postgres_changes",{event:"*",schema:"public",table:"c360_products"},scheduleReload)
+    .on("postgres_changes",{event:"*",schema:"public",table:"c360_prices"},scheduleReload)
+    .on("postgres_changes",{event:"*",schema:"public",table:"c360_notes"},scheduleReload)
+    .on("postgres_changes",{event:"*",schema:"public",table:"c360_inventory"},scheduleReload)
+    .subscribe(status=>{if(status==="SUBSCRIBED")setSync("Conectado en tiempo real","ok")});
+}
+async function cloudInsert(table,row){
+  if(!CLOUD_ENABLED)return {error:null};
+  const r=await db.from(table).insert(row);if(r.error)setSync("Error al guardar","error");return r;
+}
+
 function clientOptions(){return '<option value="">Selecciona cliente</option>'+state.clients.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")}
 function refreshSelects(){
-$("noteClient").innerHTML=clientOptions();
-$("priceClient").innerHTML=clientOptions();
-const productOptions=state.products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");
-$("noteProduct").innerHTML=productOptions;
-["invEntryProduct","invExitProduct"].forEach(id=>{if($(id))$(id).innerHTML=productOptions});
-if($("invFilterProduct"))$("invFilterProduct").innerHTML='<option value="">Todos los productos</option>'+productOptions;
-updateNotePrice()
+  const selected={nc:$("noteClient").value,pc:$("priceClient").value,np:$("noteProduct").value,ie:$("invEntryProduct").value,ix:$("invExitProduct").value,ifp:$("invFilterProduct").value};
+  $("noteClient").innerHTML=clientOptions();$("priceClient").innerHTML=clientOptions();
+  const productOptions=state.products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");
+  $("noteProduct").innerHTML=productOptions;["invEntryProduct","invExitProduct"].forEach(id=>$(id).innerHTML=productOptions);
+  $("invFilterProduct").innerHTML='<option value="">Todos los productos</option>'+productOptions;
+  if(state.clients.some(x=>x.id===selected.nc))$("noteClient").value=selected.nc;if(state.clients.some(x=>x.id===selected.pc))$("priceClient").value=selected.pc;
+  [["noteProduct",selected.np],["invEntryProduct",selected.ie],["invExitProduct",selected.ix],["invFilterProduct",selected.ifp]].forEach(([id,v])=>{if(state.products.some(x=>x.id===v))$(id).value=v});
+  updateNotePrice();
 }
-function effectivePrice(cid,pid){const s=state.prices?.[cid]?.[pid];if(s!==undefined&&s!=="")return Number(s);return Number(state.products.find(p=>p.id===pid)?.price||0)}
-function updateNotePrice(){$("notePrice").value=effectivePrice($("noteClient").value,$("noteProduct").value).toFixed(2)}
+function effectivePrice(cid,pid){const s=state.prices?.[cid]?.[pid];return s!==undefined&&s!==""?Number(s):Number(state.products.find(p=>p.id===pid)?.price||0)}
+function updateNotePrice(){if($("noteProduct").value)$("notePrice").value=effectivePrice($("noteClient").value,$("noteProduct").value).toFixed(2)}
 function renderItems(){$("noteItems").innerHTML=state.items.length?state.items.map(i=>`<tr><td>${esc(i.name)}</td><td class="num">${i.qty.toFixed(3)}</td><td class="num">${money.format(i.price)}</td><td class="num">${money.format(i.amount)}</td><td><button class="danger" data-remove="${i.id}">Quitar</button></td></tr>`).join(""):'<tr><td colspan="5" class="num">Sin productos</td></tr>';document.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{state.items=state.items.filter(i=>i.id!==b.dataset.remove);renderItems()})}
 function renderClients(){$("clientList").innerHTML=state.clients.length?state.clients.map(c=>`<div class="panel" style="padding:14px;margin-top:10px"><strong>${esc(c.name)}</strong><span class="badge">${c.phone?esc(c.phone):"Sin teléfono"}</span></div>`).join(""):'<div class="empty">Sin clientes</div>'}
-function renderProducts(){$("productTable").innerHTML=state.products.map(p=>`<tr><td><input data-pname="${p.id}" value="${esc(p.name)}"></td><td><input data-pprice="${p.id}" type="number" step="0.01" min="0" value="${p.price}"></td><td><button class="secondary" data-update="${p.id}">Guardar</button> <button class="danger" data-delete="${p.id}">Eliminar</button></td></tr>`).join("");document.querySelectorAll("[data-update]").forEach(b=>b.onclick=()=>{const id=b.dataset.update,p=state.products.find(x=>x.id===id);p.name=document.querySelector(`[data-pname="${id}"]`).value.trim();p.price=Number(document.querySelector(`[data-pprice="${id}"]`).value||0);save();refreshSelects();renderProducts()});document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{state.products=state.products.filter(p=>p.id!==b.dataset.delete);save();refreshSelects();renderProducts()})}
+function renderProducts(){
+  $("productTable").innerHTML=state.products.map(p=>`<tr><td><input data-pname="${p.id}" value="${esc(p.name)}"></td><td><input data-pprice="${p.id}" type="number" step="0.01" min="0" value="${p.price}"></td><td><button class="secondary" data-update="${p.id}">Guardar</button> <button class="danger" data-delete="${p.id}">Eliminar</button></td></tr>`).join("");
+  document.querySelectorAll("[data-update]").forEach(b=>b.onclick=async()=>{const id=b.dataset.update,name=document.querySelector(`[data-pname="${id}"]`).value.trim(),price=Number(document.querySelector(`[data-pprice="${id}"]`).value||0);if(CLOUD_ENABLED){const r=await db.from("c360_products").update({name,price}).eq("id",id);if(r.error)return setSync("No se pudo actualizar producto","error")}else{const p=state.products.find(x=>x.id===id);p.name=name;p.price=price;renderAll()}setSync("Producto actualizado","ok")});
+  document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=async()=>{const id=b.dataset.delete;if(!confirm("¿Eliminar este producto?"))return;if(CLOUD_ENABLED){const r=await db.from("c360_products").delete().eq("id",id);if(r.error)return setSync("No se pudo eliminar","error")}else{state.products=state.products.filter(p=>p.id!==id);renderAll()}});
+}
 function renderPrices(){const cid=$("priceClient").value;$("priceTable").innerHTML=state.products.map(p=>`<tr><td>${esc(p.name)}</td><td>${money.format(p.price)}</td><td><input class="special" data-id="${p.id}" type="number" step="0.01" min="0" value="${state.prices?.[cid]?.[p.id]??""}" ${cid?"":"disabled"}></td></tr>`).join("")}
-function dateKey(d){const x=new Date(d);return x.toISOString().slice(0,10)}
+function dateKey(d){return new Date(d).toISOString().slice(0,10)}
 function generateReport(){
-const date=$("reportDate").value;
-const notes=state.notes.filter(n=>dateKey(n.createdAt)===date);
-const total=notes.reduce((s,n)=>s+n.total,0);
-const clientIds=[...new Set(notes.map(n=>n.clientId))];
-const productMap={};
-notes.forEach(n=>n.items.forEach(i=>{if(!productMap[i.productId])productMap[i.productId]={name:i.name,qty:0,total:0};productMap[i.productId].qty+=i.qty;productMap[i.productId].total+=i.amount}));
-const clientsHtml=clientIds.map(cid=>{
- const cn=notes.filter(n=>n.clientId===cid);const name=cn[0]?.clientName||"Cliente";
- return `<div class="client-block"><h3>${esc(name)}</h3>${cn.map(n=>`<div class="note-box"><div class="note-head"><span>${esc(n.folio)}</span><span>${new Date(n.createdAt).toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"})}</span></div><table class="pdf-table"><thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Importe</th></tr></thead><tbody>${n.items.map(i=>`<tr><td>${esc(i.name)}</td><td>${i.qty.toFixed(3)}</td><td>${money.format(i.price)}</td><td>${money.format(i.amount)}</td></tr>`).join("")}</tbody><tfoot><tr><th colspan="3">Total nota</th><th>${money.format(n.total)}</th></tr></tfoot></table></div>`).join("")}</div>`
-}).join("");
-const productsHtml=Object.values(productMap).map(p=>`<tr><td>${esc(p.name)}</td><td>${p.qty.toFixed(3)}</td><td>${money.format(p.total)}</td></tr>`).join("");
-$("pdfSheet").innerHTML=`<div class="pdf-header"><div><h1>Resumen General Diario</h1><p>Carnicería 360° — Notas a crédito</p></div><div class="pdf-meta"><strong>${new Date(date+"T12:00:00").toLocaleDateString("es-MX",{day:"2-digit",month:"long",year:"numeric"})}</strong><br>Generado ${new Date().toLocaleString("es-MX")}</div></div><div class="pdf-summary"><div class="pdf-card"><small>Notas</small><strong>${notes.length}</strong></div><div class="pdf-card"><small>Clientes</small><strong>${clientIds.length}</strong></div><div class="pdf-card"><small>Venta total</small><strong>${money.format(total)}</strong></div><div class="pdf-card"><small>Productos distintos</small><strong>${Object.keys(productMap).length}</strong></div></div>${notes.length?clientsHtml:'<div class="empty">No hay notas para esta fecha.</div>'}<div class="product-summary"><h3>Resumen por producto</h3><table class="pdf-table"><thead><tr><th>Producto</th><th>Cantidad total</th><th>Importe total</th></tr></thead><tbody>${productsHtml||'<tr><td colspan="3">Sin movimientos</td></tr>'}</tbody></table></div>`;
+ const date=$("reportDate").value,notes=state.notes.filter(n=>dateKey(n.createdAt)===date),total=notes.reduce((s,n)=>s+n.total,0),clientIds=[...new Set(notes.map(n=>n.clientId))],productMap={};
+ notes.forEach(n=>n.items.forEach(i=>{if(!productMap[i.productId])productMap[i.productId]={name:i.name,qty:0,total:0};productMap[i.productId].qty+=i.qty;productMap[i.productId].total+=i.amount}));
+ const clientsHtml=clientIds.map(cid=>{const cn=notes.filter(n=>n.clientId===cid),name=cn[0]?.clientName||"Cliente";return `<div class="client-block"><h3>${esc(name)}</h3>${cn.map(n=>`<div class="note-box"><div class="note-head"><span>${esc(n.folio)}</span><span>${new Date(n.createdAt).toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"})}</span></div><table class="pdf-table"><thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Importe</th></tr></thead><tbody>${n.items.map(i=>`<tr><td>${esc(i.name)}</td><td>${Number(i.qty).toFixed(3)}</td><td>${money.format(i.price)}</td><td>${money.format(i.amount)}</td></tr>`).join("")}</tbody><tfoot><tr><th colspan="3">Total nota</th><th>${money.format(n.total)}</th></tr></tfoot></table></div>`).join("")}</div>`}).join("");
+ const productsHtml=Object.values(productMap).map(p=>`<tr><td>${esc(p.name)}</td><td>${p.qty.toFixed(3)}</td><td>${money.format(p.total)}</td></tr>`).join("");
+ $("pdfSheet").innerHTML=`<div class="pdf-header"><div><h1>Resumen General Diario</h1><p>Carnicería 360° — Notas a crédito</p></div><div class="pdf-meta"><strong>${new Date(date+"T12:00:00").toLocaleDateString("es-MX",{day:"2-digit",month:"long",year:"numeric"})}</strong><br>Generado ${new Date().toLocaleString("es-MX")}</div></div><div class="pdf-summary"><div class="pdf-card"><small>Notas</small><strong>${notes.length}</strong></div><div class="pdf-card"><small>Clientes</small><strong>${clientIds.length}</strong></div><div class="pdf-card"><small>Venta total</small><strong>${money.format(total)}</strong></div><div class="pdf-card"><small>Productos distintos</small><strong>${Object.keys(productMap).length}</strong></div></div>${notes.length?clientsHtml:'<div class="empty">No hay notas para esta fecha.</div>'}<div class="product-summary"><h3>Resumen por producto</h3><table class="pdf-table"><thead><tr><th>Producto</th><th>Cantidad total</th><th>Importe total</th></tr></thead><tbody>${productsHtml||'<tr><td colspan="3">Sin movimientos</td></tr>'}</tbody></table></div>`;
 }
+function inventorySummary(){const map={};state.inventory.forEach(m=>{const key=m.productId+"|"+m.unit;if(!map[key])map[key]={productId:m.productId,name:m.productName,unit:m.unit,entries:0,exits:0,costValue:0};if(m.type==="entrada"){map[key].entries+=m.qty;map[key].costValue+=m.qty*(m.unitCost||0)}else map[key].exits+=m.qty});return Object.values(map).map(x=>({...x,available:x.entries-x.exits,avgCost:x.entries?x.costValue/x.entries:0,value:(x.entries-x.exits)*(x.entries?x.costValue/x.entries:0)}))}
+function renderInventory(){const rows=inventorySummary();$("invProductsCount").textContent=rows.filter(r=>r.available>0).length;$("invTotalKg").textContent=rows.filter(r=>r.unit==="kg").reduce((s,r)=>s+r.available,0).toFixed(3)+" kg";$("invTotalPieces").textContent=rows.filter(r=>r.unit==="pza").reduce((s,r)=>s+r.available,0).toFixed(0);$("invPurchaseValue").textContent=money.format(state.inventory.filter(m=>m.type==="entrada").reduce((s,m)=>s+m.qty*(m.unitCost||0),0));$("inventoryStockTable").innerHTML=rows.length?rows.map(r=>`<tr><td>${esc(r.name)}</td><td>${r.unit==="kg"?"Kilogramos":"Piezas"}</td><td class="num">${r.entries.toFixed(r.unit==="kg"?3:0)}</td><td class="num">${r.exits.toFixed(r.unit==="kg"?3:0)}</td><td class="num ${r.available<=0?"stock-low":"stock-ok"}">${r.available.toFixed(r.unit==="kg"?3:0)}</td><td class="num">${money.format(r.avgCost)}</td><td class="num">${money.format(r.value)}</td></tr>`).join(""):'<tr><td colspan="7">Sin movimientos de inventario.</td></tr>';renderInventoryMovements()}
+function renderInventoryMovements(){const pid=$("invFilterProduct")?.value||"",type=$("invFilterType")?.value||"",list=[...state.inventory].filter(m=>(!pid||m.productId===pid)&&(!type||m.type===type)).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));$("inventoryMovements").innerHTML=list.length?list.map(m=>`<div class="inventory-movement"><div class="inventory-movement-head"><div><strong>${m.type==="entrada"?"Entrada":"Salida"} — ${esc(m.productName)}</strong><div class="inventory-movement-meta"><span>${new Date(m.date+"T12:00:00").toLocaleDateString("es-MX")}</span><span>${m.qty.toFixed(m.unit==="kg"?3:0)} ${m.unit}</span>${m.supplier?`<span>Proveedor: ${esc(m.supplier)}</span>`:""}${m.reason?`<span>Motivo: ${esc(m.reason)}</span>`:""}</div></div><span class="badge">${m.type==="entrada"?(m.unitCost?money.format(m.unitCost)+"/"+m.unit:"Entrada"):"Salida"}</span></div>${(m.lot||m.reference||m.notes)?`<div class="inventory-movement-meta">${m.lot?`<span>Lote: ${esc(m.lot)}</span>`:""}${m.reference?`<span>Ref: ${esc(m.reference)}</span>`:""}${m.notes?`<span>${esc(m.notes)}</span>`:""}</div>`:""}</div>`).join(""):'<div class="empty">No hay movimientos con estos filtros.</div>'}
+function currentAvailable(productId,unit){return inventorySummary().find(r=>r.productId===productId&&r.unit===unit)?.available||0}
 
-function inventorySummary(){
-  const map={};
-  state.inventory.forEach(m=>{
-    const key=m.productId+"|"+m.unit;
-    if(!map[key])map[key]={productId:m.productId,name:m.productName,unit:m.unit,entries:0,exits:0,costValue:0};
-    if(m.type==="entrada"){map[key].entries+=m.qty;map[key].costValue+=m.qty*(m.unitCost||0)}
-    else map[key].exits+=m.qty;
-  });
-  return Object.values(map).map(x=>({...x,available:x.entries-x.exits,avgCost:x.entries?x.costValue/x.entries:0,value:(x.entries-x.exits)*(x.entries?x.costValue/x.entries:0)}));
-}
-function renderInventory(){
-  const rows=inventorySummary();
-  $("invProductsCount").textContent=rows.filter(r=>r.available>0).length;
-  $("invTotalKg").textContent=rows.filter(r=>r.unit==="kg").reduce((s,r)=>s+r.available,0).toFixed(3)+" kg";
-  $("invTotalPieces").textContent=rows.filter(r=>r.unit==="pza").reduce((s,r)=>s+r.available,0).toFixed(0);
-  $("invPurchaseValue").textContent=money.format(state.inventory.filter(m=>m.type==="entrada").reduce((s,m)=>s+m.qty*(m.unitCost||0),0));
+document.querySelectorAll("[data-invtab]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-invtab]").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".inv-view").forEach(v=>v.classList.add("hidden"));const map={entrada:"invEntrada",salida:"invSalida",existencias:"invExistencias",movimientos:"invMovimientos"};$(map[b.dataset.invtab]).classList.remove("hidden");renderInventory()});
 
-  $("inventoryStockTable").innerHTML=rows.length?rows.map(r=>`<tr>
-    <td>${esc(r.name)}</td><td>${r.unit==="kg"?"Kilogramos":"Piezas"}</td>
-    <td class="num">${r.entries.toFixed(r.unit==="kg"?3:0)}</td>
-    <td class="num">${r.exits.toFixed(r.unit==="kg"?3:0)}</td>
-    <td class="num ${r.available<=0?"stock-low":"stock-ok"}">${r.available.toFixed(r.unit==="kg"?3:0)}</td>
-    <td class="num">${money.format(r.avgCost)}</td><td class="num">${money.format(r.value)}</td>
-  </tr>`).join(""):'<tr><td colspan="7">Sin movimientos de inventario.</td></tr>';
-  renderInventoryMovements();
-}
-function renderInventoryMovements(){
-  const pid=$("invFilterProduct")?.value||"",type=$("invFilterType")?.value||"";
-  const list=[...state.inventory].filter(m=>(!pid||m.productId===pid)&&(!type||m.type===type)).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  $("inventoryMovements").innerHTML=list.length?list.map(m=>`<div class="inventory-movement">
-    <div class="inventory-movement-head"><div><strong>${m.type==="entrada"?"Entrada":"Salida"} — ${esc(m.productName)}</strong>
-    <div class="inventory-movement-meta"><span>${new Date(m.date+"T12:00:00").toLocaleDateString("es-MX")}</span><span>${m.qty.toFixed(m.unit==="kg"?3:0)} ${m.unit}</span>${m.supplier?`<span>Proveedor: ${esc(m.supplier)}</span>`:""}${m.reason?`<span>Motivo: ${esc(m.reason)}</span>`:""}</div></div>
-    <span class="badge">${m.type==="entrada"?(m.unitCost?money.format(m.unitCost)+"/"+m.unit:"Entrada"):"Salida"}</span></div>
-    ${(m.lot||m.reference||m.notes)?`<div class="inventory-movement-meta">${m.lot?`<span>Lote: ${esc(m.lot)}</span>`:""}${m.reference?`<span>Ref: ${esc(m.reference)}</span>`:""}${m.notes?`<span>${esc(m.notes)}</span>`:""}</div>`:""}
-  </div>`).join(""):'<div class="empty">No hay movimientos con estos filtros.</div>';
-}
-function currentAvailable(productId,unit){
-  return inventorySummary().find(r=>r.productId===productId&&r.unit===unit)?.available||0;
-}
-document.querySelectorAll("[data-invtab]").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll("[data-invtab]").forEach(x=>x.classList.remove("active"));b.classList.add("active");
-  document.querySelectorAll(".inv-view").forEach(v=>v.classList.add("hidden"));
-  const map={entrada:"invEntrada",salida:"invSalida",existencias:"invExistencias",movimientos:"invMovimientos"};
-  $(map[b.dataset.invtab]).classList.remove("hidden");renderInventory();
-});
-$("saveInventoryEntry").onclick=()=>{
-  const pid=$("invEntryProduct").value,p=state.products.find(x=>x.id===pid),qty=Number($("invEntryQty").value),cost=Number($("invEntryCost").value||0);
-  if(!pid||!qty||qty<=0||!$("invSupplier").value.trim()){
-    $("invEntryMessage").textContent="Captura proveedor, producto y cantidad recibida.";$("invEntryMessage").className="message error";return;
-  }
-  state.inventory.push({id:uid(),type:"entrada",date:$("invEntryDate").value,productId:pid,productName:p.name,unit:$("invEntryUnit").value,qty,unitCost:cost,supplier:$("invSupplier").value.trim(),lot:$("invEntryLot").value.trim(),reference:$("invEntryRef").value.trim(),notes:$("invEntryNotes").value.trim(),createdAt:new Date().toISOString()});
-  save();["invEntryQty","invEntryCost","invEntryLot","invEntryRef","invEntryNotes"].forEach(id=>$(id).value="");
-  $("invEntryMessage").textContent="Entrada guardada correctamente.";$("invEntryMessage").className="message ok";renderInventory();
-};
-$("saveInventoryExit").onclick=()=>{
-  const pid=$("invExitProduct").value,p=state.products.find(x=>x.id===pid),unit=$("invExitUnit").value,qty=Number($("invExitQty").value),available=currentAvailable(pid,unit);
-  if(!pid||!qty||qty<=0){$("invExitMessage").textContent="Selecciona producto y captura una cantidad.";$("invExitMessage").className="message error";return}
-  if(qty>available){$("invExitMessage").textContent=`No hay suficiente existencia. Disponible: ${available.toFixed(unit==="kg"?3:0)} ${unit}.`;$("invExitMessage").className="message error";return}
-  state.inventory.push({id:uid(),type:"salida",date:$("invExitDate").value,productId:pid,productName:p.name,unit,qty,reason:$("invExitReason").value,reference:$("invExitRef").value.trim(),notes:$("invExitNotes").value.trim(),createdAt:new Date().toISOString()});
-  save();["invExitQty","invExitRef","invExitNotes"].forEach(id=>$(id).value="");
-  $("invExitMessage").textContent="Salida guardada correctamente.";$("invExitMessage").className="message ok";renderInventory();
-};
-$("invFilterProduct").onchange=renderInventoryMovements;
-$("invFilterType").onchange=renderInventoryMovements;
+$("saveInventoryEntry").onclick=async()=>{const pid=$("invEntryProduct").value,p=state.products.find(x=>x.id===pid),qty=Number($("invEntryQty").value),cost=Number($("invEntryCost").value||0);if(!pid||!qty||qty<=0||!$("invSupplier").value.trim()){$("invEntryMessage").textContent="Captura proveedor, producto y cantidad recibida.";$("invEntryMessage").className="message error";return}const item={id:uid(),type:"entrada",date:$("invEntryDate").value,productId:pid,productName:p.name,unit:$("invEntryUnit").value,qty,unitCost:cost,supplier:$("invSupplier").value.trim(),lot:$("invEntryLot").value.trim(),reference:$("invEntryRef").value.trim(),reason:"",notes:$("invEntryNotes").value.trim(),createdAt:new Date().toISOString()};if(CLOUD_ENABLED){const r=await cloudInsert("c360_inventory",{id:item.id,type:item.type,move_date:item.date,product_id:item.productId,product_name:item.productName,unit:item.unit,qty:item.qty,unit_cost:item.unitCost,supplier:item.supplier,lot:item.lot,reference:item.reference,reason:item.reason,notes:item.notes,created_at:item.createdAt});if(r.error)return}else{state.inventory.push(item);renderAll()}["invEntryQty","invEntryCost","invEntryLot","invEntryRef","invEntryNotes"].forEach(id=>$(id).value="");$("invEntryMessage").textContent="Entrada guardada correctamente.";$("invEntryMessage").className="message ok"};
+$("saveInventoryExit").onclick=async()=>{const pid=$("invExitProduct").value,p=state.products.find(x=>x.id===pid),unit=$("invExitUnit").value,qty=Number($("invExitQty").value),available=currentAvailable(pid,unit);if(!pid||!qty||qty<=0){$("invExitMessage").textContent="Selecciona producto y captura una cantidad.";$("invExitMessage").className="message error";return}if(qty>available){$("invExitMessage").textContent=`No hay suficiente existencia. Disponible: ${available.toFixed(unit==="kg"?3:0)} ${unit}.`;$("invExitMessage").className="message error";return}const item={id:uid(),type:"salida",date:$("invExitDate").value,productId:pid,productName:p.name,unit,qty,unitCost:0,supplier:"",lot:"",reference:$("invExitRef").value.trim(),reason:$("invExitReason").value,notes:$("invExitNotes").value.trim(),createdAt:new Date().toISOString()};if(CLOUD_ENABLED){const r=await cloudInsert("c360_inventory",{id:item.id,type:item.type,move_date:item.date,product_id:item.productId,product_name:item.productName,unit:item.unit,qty:item.qty,unit_cost:0,supplier:"",lot:"",reference:item.reference,reason:item.reason,notes:item.notes,created_at:item.createdAt});if(r.error)return}else{state.inventory.push(item);renderAll()}["invExitQty","invExitRef","invExitNotes"].forEach(id=>$(id).value="");$("invExitMessage").textContent="Salida guardada correctamente.";$("invExitMessage").className="message ok"};
+$("invFilterProduct").onchange=renderInventoryMovements;$("invFilterType").onchange=renderInventoryMovements;
 
-document.querySelectorAll(".menu button").forEach(b=>b.onclick=()=>{
-function inventorySummary(){
-  const map={};
-  state.inventory.forEach(m=>{
-    const key=m.productId+"|"+m.unit;
-    if(!map[key])map[key]={productId:m.productId,name:m.productName,unit:m.unit,entries:0,exits:0,costValue:0};
-    if(m.type==="entrada"){map[key].entries+=m.qty;map[key].costValue+=m.qty*(m.unitCost||0)}
-    else map[key].exits+=m.qty;
-  });
-  return Object.values(map).map(x=>({...x,available:x.entries-x.exits,avgCost:x.entries?x.costValue/x.entries:0,value:(x.entries-x.exits)*(x.entries?x.costValue/x.entries:0)}));
-}
-function renderInventory(){
-  const rows=inventorySummary();
-  $("invProductsCount").textContent=rows.filter(r=>r.available>0).length;
-  $("invTotalKg").textContent=rows.filter(r=>r.unit==="kg").reduce((s,r)=>s+r.available,0).toFixed(3)+" kg";
-  $("invTotalPieces").textContent=rows.filter(r=>r.unit==="pza").reduce((s,r)=>s+r.available,0).toFixed(0);
-  $("invPurchaseValue").textContent=money.format(state.inventory.filter(m=>m.type==="entrada").reduce((s,m)=>s+m.qty*(m.unitCost||0),0));
+document.querySelectorAll(".menu button").forEach(b=>b.onclick=()=>{if(currentUser?.role!=="admin"&&b.dataset.module!=="notas")return;document.querySelectorAll(".menu button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".module").forEach(m=>m.classList.add("hidden"));$(b.dataset.module).classList.remove("hidden");const map={notas:["Notas a crédito","Captura ventas con precios por cliente."],clientes:["Clientes","Alta y consulta de clientes."],productos:["Productos","Catálogo editable de vísceras."],precios:["Precios especiales","Precios distintos por cliente."],inventario:["Inventario","Control de entradas, compras, salidas y existencias."],resumen:["Resumen diario PDF","Hoja imprimible con todos los pedidos del día."]};$("title").textContent=map[b.dataset.module][0];$("subtitle").textContent=map[b.dataset.module][1];if(b.dataset.module==="productos")renderProducts();if(b.dataset.module==="precios")renderPrices();if(b.dataset.module==="inventario")renderInventory();if(b.dataset.module==="resumen")generateReport()});
 
-  $("inventoryStockTable").innerHTML=rows.length?rows.map(r=>`<tr>
-    <td>${esc(r.name)}</td><td>${r.unit==="kg"?"Kilogramos":"Piezas"}</td>
-    <td class="num">${r.entries.toFixed(r.unit==="kg"?3:0)}</td>
-    <td class="num">${r.exits.toFixed(r.unit==="kg"?3:0)}</td>
-    <td class="num ${r.available<=0?"stock-low":"stock-ok"}">${r.available.toFixed(r.unit==="kg"?3:0)}</td>
-    <td class="num">${money.format(r.avgCost)}</td><td class="num">${money.format(r.value)}</td>
-  </tr>`).join(""):'<tr><td colspan="7">Sin movimientos de inventario.</td></tr>';
-  renderInventoryMovements();
-}
-function renderInventoryMovements(){
-  const pid=$("invFilterProduct")?.value||"",type=$("invFilterType")?.value||"";
-  const list=[...state.inventory].filter(m=>(!pid||m.productId===pid)&&(!type||m.type===type)).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  $("inventoryMovements").innerHTML=list.length?list.map(m=>`<div class="inventory-movement">
-    <div class="inventory-movement-head"><div><strong>${m.type==="entrada"?"Entrada":"Salida"} — ${esc(m.productName)}</strong>
-    <div class="inventory-movement-meta"><span>${new Date(m.date+"T12:00:00").toLocaleDateString("es-MX")}</span><span>${m.qty.toFixed(m.unit==="kg"?3:0)} ${m.unit}</span>${m.supplier?`<span>Proveedor: ${esc(m.supplier)}</span>`:""}${m.reason?`<span>Motivo: ${esc(m.reason)}</span>`:""}</div></div>
-    <span class="badge">${m.type==="entrada"?(m.unitCost?money.format(m.unitCost)+"/"+m.unit:"Entrada"):"Salida"}</span></div>
-    ${(m.lot||m.reference||m.notes)?`<div class="inventory-movement-meta">${m.lot?`<span>Lote: ${esc(m.lot)}</span>`:""}${m.reference?`<span>Ref: ${esc(m.reference)}</span>`:""}${m.notes?`<span>${esc(m.notes)}</span>`:""}</div>`:""}
-  </div>`).join(""):'<div class="empty">No hay movimientos con estos filtros.</div>';
-}
-function currentAvailable(productId,unit){
-  return inventorySummary().find(r=>r.productId===productId&&r.unit===unit)?.available||0;
-}
-document.querySelectorAll("[data-invtab]").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll("[data-invtab]").forEach(x=>x.classList.remove("active"));b.classList.add("active");
-  document.querySelectorAll(".inv-view").forEach(v=>v.classList.add("hidden"));
-  const map={entrada:"invEntrada",salida:"invSalida",existencias:"invExistencias",movimientos:"invMovimientos"};
-  $(map[b.dataset.invtab]).classList.remove("hidden");renderInventory();
-});
-$("saveInventoryEntry").onclick=()=>{
-  const pid=$("invEntryProduct").value,p=state.products.find(x=>x.id===pid),qty=Number($("invEntryQty").value),cost=Number($("invEntryCost").value||0);
-  if(!pid||!qty||qty<=0||!$("invSupplier").value.trim()){
-    $("invEntryMessage").textContent="Captura proveedor, producto y cantidad recibida.";$("invEntryMessage").className="message error";return;
-  }
-  state.inventory.push({id:uid(),type:"entrada",date:$("invEntryDate").value,productId:pid,productName:p.name,unit:$("invEntryUnit").value,qty,unitCost:cost,supplier:$("invSupplier").value.trim(),lot:$("invEntryLot").value.trim(),reference:$("invEntryRef").value.trim(),notes:$("invEntryNotes").value.trim(),createdAt:new Date().toISOString()});
-  save();["invEntryQty","invEntryCost","invEntryLot","invEntryRef","invEntryNotes"].forEach(id=>$(id).value="");
-  $("invEntryMessage").textContent="Entrada guardada correctamente.";$("invEntryMessage").className="message ok";renderInventory();
-};
-$("saveInventoryExit").onclick=()=>{
-  const pid=$("invExitProduct").value,p=state.products.find(x=>x.id===pid),unit=$("invExitUnit").value,qty=Number($("invExitQty").value),available=currentAvailable(pid,unit);
-  if(!pid||!qty||qty<=0){$("invExitMessage").textContent="Selecciona producto y captura una cantidad.";$("invExitMessage").className="message error";return}
-  if(qty>available){$("invExitMessage").textContent=`No hay suficiente existencia. Disponible: ${available.toFixed(unit==="kg"?3:0)} ${unit}.`;$("invExitMessage").className="message error";return}
-  state.inventory.push({id:uid(),type:"salida",date:$("invExitDate").value,productId:pid,productName:p.name,unit,qty,reason:$("invExitReason").value,reference:$("invExitRef").value.trim(),notes:$("invExitNotes").value.trim(),createdAt:new Date().toISOString()});
-  save();["invExitQty","invExitRef","invExitNotes"].forEach(id=>$(id).value="");
-  $("invExitMessage").textContent="Salida guardada correctamente.";$("invExitMessage").className="message ok";renderInventory();
-};
-$("invFilterProduct").onchange=renderInventoryMovements;
-$("invFilterType").onchange=renderInventoryMovements;
-
-document.querySelectorAll(".menu button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".module").forEach(m=>m.classList.add("hidden"));$(b.dataset.module).classList.remove("hidden");const map={notas:["Notas a crédito","Captura ventas con precios por cliente."],clientes:["Clientes","Alta y consulta de clientes."],productos:["Productos","Catálogo editable de vísceras."],precios:["Precios especiales","Precios distintos por cliente."],inventario:["Inventario","Control de entradas, compras, salidas y existencias."],resumen:["Resumen diario PDF","Hoja imprimible con todos los pedidos del día."]};$("title").textContent=map[b.dataset.module][0];$("subtitle").textContent=map[b.dataset.module][1];if(b.dataset.module==="productos")renderProducts();if(b.dataset.module==="precios")renderPrices();if(b.dataset.module==="inventario")renderInventory();if(b.dataset.module==="resumen")generateReport()});
-$("saveClient").onclick=()=>{const name=$("clientName").value.trim();if(!name){$("clientMessage").textContent="El nombre es obligatorio.";$("clientMessage").className="message error";return}state.clients.push({id:uid(),name,phone:$("clientPhone").value.trim()});save();$("clientName").value="";$("clientPhone").value="";$("clientMessage").textContent="Cliente guardado.";$("clientMessage").className="message ok";renderClients();refreshSelects()};
-$("saveProduct").onclick=()=>{const name=$("productName").value.trim(),price=Number($("productPrice").value||0);if(!name){$("productMessage").textContent="Escribe el nombre del producto.";$("productMessage").className="message error";return}state.products.push({id:uid(),name,price});save();$("productName").value="";$("productPrice").value="";renderProducts();refreshSelects()};
+$("saveClient").onclick=async()=>{const name=$("clientName").value.trim(),phone=$("clientPhone").value.trim();if(!name){$("clientMessage").textContent="El nombre es obligatorio.";$("clientMessage").className="message error";return}const item={id:uid(),name,phone};if(CLOUD_ENABLED){const r=await cloudInsert("c360_clients",item);if(r.error)return}else{state.clients.push(item);renderAll()}$("clientName").value="";$("clientPhone").value="";$("clientMessage").textContent="Cliente guardado y sincronizado.";$("clientMessage").className="message ok"};
+$("saveProduct").onclick=async()=>{const name=$("productName").value.trim(),price=Number($("productPrice").value||0);if(!name){$("productMessage").textContent="Escribe el nombre del producto.";$("productMessage").className="message error";return}const item={id:uid(),name,price};if(CLOUD_ENABLED){const r=await cloudInsert("c360_products",item);if(r.error)return}else{state.products.push(item);renderAll()}$("productName").value="";$("productPrice").value="";$("productMessage").textContent="Producto guardado y sincronizado.";$("productMessage").className="message ok"};
 $("addItem").onclick=()=>{const cid=$("noteClient").value,pid=$("noteProduct").value,qty=Number($("noteQty").value),price=Number($("notePrice").value),p=state.products.find(x=>x.id===pid);if(!cid||!qty||qty<=0){$("noteMessage").textContent="Selecciona cliente y captura cantidad.";$("noteMessage").className="message error";return}state.items.push({id:uid(),productId:pid,name:p.name,qty,price,amount:qty*price});$("noteQty").value="";renderItems()};
-$("saveNote").onclick=()=>{const cid=$("noteClient").value,c=state.clients.find(x=>x.id===cid);if(!cid||!state.items.length){$("noteMessage").textContent="Falta cliente o productos.";$("noteMessage").className="message error";return}state.notes.push({id:uid(),folio:"CR-"+Date.now(),clientId:cid,clientName:c.name,items:[...state.items],total:state.items.reduce((s,i)=>s+i.amount,0),createdAt:new Date().toISOString()});state.items=[];save();renderItems();$("noteMessage").textContent="Nota guardada.";$("noteMessage").className="message ok"};
+$("saveNote").onclick=async()=>{const cid=$("noteClient").value,c=state.clients.find(x=>x.id===cid);if(!cid||!state.items.length){$("noteMessage").textContent="Falta cliente o productos.";$("noteMessage").className="message error";return}const item={id:uid(),folio:"CR-"+Date.now(),clientId:cid,clientName:c.name,items:[...state.items],total:state.items.reduce((s,i)=>s+i.amount,0),createdAt:new Date().toISOString()};if(CLOUD_ENABLED){const r=await cloudInsert("c360_notes",{id:item.id,folio:item.folio,client_id:item.clientId,client_name:item.clientName,items:item.items,total:item.total,created_at:item.createdAt,created_by:currentUser?.name||""});if(r.error)return}else{state.notes.unshift(item);renderAll()}state.items=[];renderItems();$("noteMessage").textContent="Nota guardada y sincronizada.";$("noteMessage").className="message ok"};
 $("clearNote").onclick=()=>{state.items=[];renderItems()};
 $("noteClient").onchange=updateNotePrice;$("noteProduct").onchange=updateNotePrice;$("priceClient").onchange=renderPrices;
-$("savePrices").onclick=()=>{const cid=$("priceClient").value;if(!cid)return;state.prices[cid]=state.prices[cid]||{};document.querySelectorAll(".special").forEach(i=>{if(i.value==="")delete state.prices[cid][i.dataset.id];else state.prices[cid][i.dataset.id]=Number(i.value)});save();$("priceMessage").textContent="Precios guardados.";$("priceMessage").className="message ok"};
+$("savePrices").onclick=async()=>{const cid=$("priceClient").value;if(!cid)return;const inputs=[...document.querySelectorAll(".special")];if(CLOUD_ENABLED){const rows=inputs.filter(i=>i.value!=="").map(i=>({client_id:cid,product_id:i.dataset.id,price:Number(i.value)}));const blankIds=inputs.filter(i=>i.value==="").map(i=>i.dataset.id);if(rows.length){const r=await db.from("c360_prices").upsert(rows,{onConflict:"client_id,product_id"});if(r.error)return setSync("No se pudieron guardar precios","error")}if(blankIds.length)await db.from("c360_prices").delete().eq("client_id",cid).in("product_id",blankIds)}else{state.prices[cid]={};inputs.forEach(i=>{if(i.value!=="")state.prices[cid][i.dataset.id]=Number(i.value)});renderAll()}$("priceMessage").textContent="Precios guardados y sincronizados.";$("priceMessage").className="message ok"};
 $("generateReport").onclick=generateReport;$("printReport").onclick=()=>window.print();
-$("reportDate").value=new Date().toISOString().slice(0,10);
-$("invEntryDate").value=new Date().toISOString().slice(0,10);
-$("invExitDate").value=new Date().toISOString().slice(0,10);
-save();refreshSelects();renderItems();renderClients();renderProducts();renderPrices();renderInventory();generateReport();
+$("reportDate").value=new Date().toISOString().slice(0,10);$("invEntryDate").value=new Date().toISOString().slice(0,10);$("invExitDate").value=new Date().toISOString().slice(0,10);
+loadCloudData().then(startRealtime);
 </script>
 </body>
 </html>
