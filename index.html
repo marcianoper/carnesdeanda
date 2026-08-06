@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -261,8 +261,9 @@ th{font-size:12px;text-transform:uppercase;color:var(--muted)}
         <div class="field full"><button id="addItem" class="primary">Agregar producto</button></div>
       </div>
       <div id="noteMessage" class="message"></div>
+      <div id="dispatchMessage" class="message" style="font-size:13px;color:var(--muted)"></div>
       <div class="table-wrap"><table><thead><tr><th>Producto</th><th class="num">Cantidad</th><th class="num">Precio</th><th class="num">Importe</th><th></th></tr></thead><tbody id="noteItems"></tbody></table></div>
-      <div class="actions" style="margin-top:15px"><button id="saveNote" class="primary">Guardar nota</button><button id="clearNote" class="secondary">Limpiar</button></div>
+      <div class="actions" style="margin-top:15px"><button id="saveNote" class="primary">Guardar e imprimir</button><button id="clearNote" class="secondary">Limpiar</button></div>
     </section>
 
     <section id="clientes" class="module panel hidden">
@@ -513,7 +514,7 @@ async function loadCloudData(showStatus=true){
   state.clients=clients.data.map(x=>({id:x.id,name:x.name,phone:x.phone||""}));
   state.products=products.data.map(x=>({id:x.id,name:x.name,price:Number(x.price||0)}));
   state.prices={}; prices.data.forEach(x=>{state.prices[x.client_id]??={};state.prices[x.client_id][x.product_id]=Number(x.price)});
-  state.notes=notes.data.map(x=>({id:x.id,folio:x.folio,clientId:x.client_id,clientName:x.client_name,items:x.items||[],total:Number(x.total||0),createdAt:x.created_at}));
+  state.notes=notes.data.map(x=>({id:x.id,folio:x.folio,clientId:x.client_id,clientName:x.client_name,clientPhone:x.client_phone||"",items:x.items||[],total:Number(x.total||0),createdAt:x.created_at,printStatus:x.print_status||"pendiente"}));
   state.inventory=inventory.data.map(x=>({id:x.id,type:x.type,date:x.move_date,productId:x.product_id,productName:x.product_name,unit:x.unit,qty:Number(x.qty),unitCost:Number(x.unit_cost||0),supplier:x.supplier||"",lot:x.lot||"",reference:x.reference||"",reason:x.reason||"",notes:x.notes||"",createdAt:x.created_at}));
   if(!state.products.length){
     await db.from("c360_products").insert(DEFAULT_PRODUCTS.map(p=>({id:p.id,name:p.name,price:p.price})));
@@ -582,7 +583,22 @@ document.querySelectorAll(".menu button").forEach(b=>b.onclick=()=>{if(currentUs
 $("saveClient").onclick=async()=>{const name=$("clientName").value.trim(),phone=$("clientPhone").value.trim();if(!name){$("clientMessage").textContent="El nombre es obligatorio.";$("clientMessage").className="message error";return}const item={id:uid(),name,phone};if(CLOUD_ENABLED){const r=await cloudInsert("c360_clients",item);if(r.error)return}else{state.clients.push(item);renderAll()}$("clientName").value="";$("clientPhone").value="";$("clientMessage").textContent="Cliente guardado y sincronizado.";$("clientMessage").className="message ok"};
 $("saveProduct").onclick=async()=>{const name=$("productName").value.trim(),price=Number($("productPrice").value||0);if(!name){$("productMessage").textContent="Escribe el nombre del producto.";$("productMessage").className="message error";return}const item={id:uid(),name,price};if(CLOUD_ENABLED){const r=await cloudInsert("c360_products",item);if(r.error)return}else{state.products.push(item);renderAll()}$("productName").value="";$("productPrice").value="";$("productMessage").textContent="Producto guardado y sincronizado.";$("productMessage").className="message ok"};
 $("addItem").onclick=()=>{const cid=$("noteClient").value,pid=$("noteProduct").value,qty=Number($("noteQty").value),price=Number($("notePrice").value),p=state.products.find(x=>x.id===pid);if(!cid||!qty||qty<=0){$("noteMessage").textContent="Selecciona cliente y captura cantidad.";$("noteMessage").className="message error";return}state.items.push({id:uid(),productId:pid,name:p.name,qty,price,amount:qty*price});$("noteQty").value="";renderItems()};
-$("saveNote").onclick=async()=>{const cid=$("noteClient").value,c=state.clients.find(x=>x.id===cid);if(!cid||!state.items.length){$("noteMessage").textContent="Falta cliente o productos.";$("noteMessage").className="message error";return}const item={id:uid(),folio:"CR-"+Date.now(),clientId:cid,clientName:c.name,items:[...state.items],total:state.items.reduce((s,i)=>s+i.amount,0),createdAt:new Date().toISOString()};if(CLOUD_ENABLED){const r=await cloudInsert("c360_notes",{id:item.id,folio:item.folio,client_id:item.clientId,client_name:item.clientName,items:item.items,total:item.total,created_at:item.createdAt,created_by:currentUser?.name||""});if(r.error)return}else{state.notes.unshift(item);renderAll()}state.items=[];renderItems();$("noteMessage").textContent="Nota guardada y sincronizada.";$("noteMessage").className="message ok"};
+$("saveNote").onclick=async()=>{
+  const cid=$("noteClient").value,c=state.clients.find(x=>x.id===cid);
+  if(!cid||!state.items.length){$("noteMessage").textContent="Falta cliente o productos.";$("noteMessage").className="message error";return}
+  const item={id:uid(),folio:"CR-"+Date.now(),clientId:cid,clientName:c.name,clientPhone:c.phone||"",items:[...state.items],total:state.items.reduce((s,i)=>s+i.amount,0),createdAt:new Date().toISOString()};
+  if(CLOUD_ENABLED){
+    const r=await cloudInsert("c360_notes",{
+      id:item.id,folio:item.folio,client_id:item.clientId,client_name:item.clientName,client_phone:item.clientPhone,
+      items:item.items,total:item.total,created_at:item.createdAt,created_by:currentUser?.name||"",
+      print_status:"pendiente",print_attempts:0
+    });
+    if(r.error)return
+  }else{state.notes.unshift({...item,printStatus:"pendiente"});renderAll()}
+  state.items=[];renderItems();
+  $("noteMessage").textContent="Nota guardada correctamente.";$("noteMessage").className="message ok";
+  $("dispatchMessage").textContent=CLOUD_ENABLED?"Nota enviada a la cola de impresión. La computadora receptora la imprimirá automáticamente.":"La nota quedó guardada solamente en este dispositivo. Configura Supabase para activar la impresión automática.";
+};
 $("clearNote").onclick=()=>{state.items=[];renderItems()};
 $("noteClient").onchange=updateNotePrice;$("noteProduct").onchange=updateNotePrice;$("priceClient").onchange=renderPrices;
 $("savePrices").onclick=async()=>{const cid=$("priceClient").value;if(!cid)return;const inputs=[...document.querySelectorAll(".special")];if(CLOUD_ENABLED){const rows=inputs.filter(i=>i.value!=="").map(i=>({client_id:cid,product_id:i.dataset.id,price:Number(i.value)}));const blankIds=inputs.filter(i=>i.value==="").map(i=>i.dataset.id);if(rows.length){const r=await db.from("c360_prices").upsert(rows,{onConflict:"client_id,product_id"});if(r.error)return setSync("No se pudieron guardar precios","error")}if(blankIds.length)await db.from("c360_prices").delete().eq("client_id",cid).in("product_id",blankIds)}else{state.prices[cid]={};inputs.forEach(i=>{if(i.value!=="")state.prices[cid][i.dataset.id]=Number(i.value)});renderAll()}$("priceMessage").textContent="Precios guardados y sincronizados.";$("priceMessage").className="message ok"};
