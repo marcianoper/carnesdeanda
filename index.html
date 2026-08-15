@@ -1,4 +1,3 @@
-
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -77,6 +76,19 @@ th{font-size:12px;text-transform:uppercase;color:var(--muted)}
 .inventory-movement-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
 .inventory-movement-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:7px;color:var(--muted);font-size:13px}
 
+
+.account-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}
+.account-kpi{background:#faf7f4;border:1px solid var(--line);border-radius:15px;padding:14px}
+.account-kpi small{display:block;color:var(--muted);font-weight:700;margin-bottom:5px}
+.account-kpi strong{font-size:22px}
+.account-balance.positive{color:var(--bad);font-weight:900}
+.account-balance.zero{color:var(--ok);font-weight:900}
+.account-detail-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.account-movement{display:grid;grid-template-columns:120px 1fr 150px;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.account-movement:last-child{border-bottom:0}
+.account-movement .credit{color:var(--bad);font-weight:900;text-align:right}
+.account-movement .payment{color:var(--ok);font-weight:900;text-align:right}
+@media(max-width:900px){.account-kpis{grid-template-columns:1fr}.account-movement{grid-template-columns:1fr auto}.account-movement>div:nth-child(2){grid-column:1/-1;grid-row:2}.account-movement .credit,.account-movement .payment{text-align:right}}
 @media (min-width:901px) and (max-width:1180px){
   .app{grid-template-columns:92px minmax(0,1fr)}
   .sidebar{padding:16px 10px}
@@ -98,7 +110,7 @@ th{font-size:12px;text-transform:uppercase;color:var(--muted)}
     z-index:100;display:block
   }
   .brand{display:none}
-  .menu{height:100%;display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+  .menu{height:100%;display:grid;grid-template-columns:repeat(8,minmax(64px,1fr));gap:4px;overflow-x:auto;overflow-y:hidden}
   .menu button{
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
     min-width:0;padding:5px 2px;border-radius:10px;text-align:center;font-size:20px
@@ -244,10 +256,11 @@ th{font-size:12px;text-transform:uppercase;color:var(--muted)}
 </div>
 <div id="appRoot" class="app hidden">
   <aside class="sidebar">
-    <div class="brand"><div class="logo">🥩</div><div><strong>Carnicería 360°</strong><small>Control de crédito</small></div></div>
+    <div class="brand"><div class="logo">🥩</div><div><strong>Carnicería 360°</strong><small>Ventas y cuentas</small></div></div>
     <nav class="menu">
       <button class="active" data-module="notas">🧾 <span>Notas</span></button>
       <button data-module="clientes">👥 <span>Clientes</span></button>
+      <button data-module="cuentas">💳 <span>Cuentas</span></button>
       <button data-module="empleados">🪪 <span>Empleados</span></button>
       <button data-module="productos">🥩 <span>Productos</span></button>
       <button data-module="precios">💲 <span>Precios</span></button>
@@ -258,7 +271,7 @@ th{font-size:12px;text-transform:uppercase;color:var(--muted)}
 
   <main class="content">
     <div class="topbar">
-      <div><h1 id="title">Notas a crédito</h1><p id="subtitle">Captura ventas con precios por cliente.</p></div>
+      <div><h1 id="title">Notas de venta</h1><p id="subtitle">Captura ventas con precios por cliente.</p></div>
       <div><span id="syncStatus" class="badge" style="margin-right:8px">Preparando sincronización…</span><div class="user-chip" style="display:inline-block"><span id="currentUserLabel">Usuario</span><button id="logoutBtn" class="logout-btn">Salir</button></div></div>
     </div>
 
@@ -289,6 +302,37 @@ th{font-size:12px;text-transform:uppercase;color:var(--muted)}
       <div id="clientList"></div>
     </section>
 
+
+    <section id="cuentas" class="module panel hidden">
+      <div class="account-detail-head">
+        <div><h2>Cuentas de clientes</h2><p>Consulta ventas, abonos y saldo pendiente por cliente.</p></div>
+        <div class="field" style="min-width:min(100%,320px)"><label>Buscar cliente</label><input id="accountSearch" placeholder="Nombre o teléfono"></div>
+      </div>
+      <div class="account-kpis">
+        <div class="account-kpi"><small>Saldo total pendiente</small><strong id="accountsTotalBalance">$0.00</strong></div>
+        <div class="account-kpi"><small>Ventas registradas</small><strong id="accountsTotalSales">$0.00</strong></div>
+        <div class="account-kpi"><small>Abonos registrados</small><strong id="accountsTotalPayments">$0.00</strong></div>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Cliente</th><th class="num">Ventas</th><th class="num">Abonos</th><th class="num">Saldo</th><th></th></tr></thead><tbody id="accountsTable"></tbody></table></div>
+
+      <div id="accountDetail" class="panel hidden" style="margin:18px 0 0;padding:18px">
+        <div class="account-detail-head">
+          <div><h3 id="accountClientName">Cuenta</h3><p id="accountClientPhone"></p></div>
+          <div><small style="display:block;color:var(--muted);font-weight:700">Saldo pendiente</small><strong id="accountClientBalance" style="font-size:28px">$0.00</strong></div>
+        </div>
+        <div class="grid" style="margin-top:16px">
+          <div class="field"><label>Fecha del abono</label><input id="paymentDate" type="date"></div>
+          <div class="field"><label>Monto del abono</label><input id="paymentAmount" type="number" min="0" step="0.01" placeholder="0.00"></div>
+          <div class="field"><label>Forma de pago</label><select id="paymentMethod"><option>Efectivo</option><option>Transferencia</option><option>Depósito</option><option>Tarjeta</option><option>Otro</option></select></div>
+          <div class="field"><label>Referencia</label><input id="paymentReference" placeholder="Opcional"></div>
+          <div class="field full"><label>Observaciones</label><textarea id="paymentNotes" placeholder="Opcional"></textarea></div>
+          <div class="field full"><button id="savePayment" class="primary">Registrar abono</button></div>
+        </div>
+        <div id="paymentMessage" class="message"></div>
+        <h3 style="margin-top:20px">Historial de movimientos</h3>
+        <div id="accountMovements"></div>
+      </div>
+    </section>
 
     <section id="empleados" class="module panel hidden">
       <h2>Perfiles de empleados</h2>
@@ -465,7 +509,7 @@ function applyPermissions(){
     document.getElementById('notas').classList.remove('hidden');
     document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('active'));
     document.querySelector('[data-module="notas"]').classList.add('active');
-    document.getElementById('title').textContent='Notas a crédito';
+    document.getElementById('title').textContent='Notas de venta';
     document.getElementById('subtitle').textContent='Captura ventas con precios por cliente.';
   }
 }
@@ -519,7 +563,7 @@ const DEFAULT_PRODUCTS=[
 {id:"rinon",name:"Riñón",price:0},{id:"ubre",name:"Ubre",price:0},{id:"pescuezo",name:"Pescuezo",price:0},{id:"cachete",name:"Cachete",price:0}
 ];
 
-const state={clients:[],products:[],prices:{},notes:[],inventory:[],items:[]};
+const state={clients:[],products:[],prices:{},notes:[],payments:[],inventory:[],items:[]};
 const $=id=>document.getElementById(id);
 const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random();
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -532,7 +576,7 @@ function setSync(text,type=""){
   el.style.color=type==="ok"?"#166534":type==="error"?"#991b1b":"#5b4c46";
 }
 function localBackup(){
-  localStorage.setItem("c360_realtime_backup",JSON.stringify({users,clients:state.clients,products:state.products,prices:state.prices,notes:state.notes,inventory:state.inventory}));
+  localStorage.setItem("c360_realtime_backup",JSON.stringify({users,clients:state.clients,products:state.products,prices:state.prices,notes:state.notes,payments:state.payments,inventory:state.inventory}));
 }
 function loadLocalBackup(){
   const old={
@@ -540,13 +584,14 @@ function loadLocalBackup(){
     products:JSON.parse(localStorage.getItem("c360_products_pdf")||"null"),
     prices:JSON.parse(localStorage.getItem("c360_prices_pdf")||"{}"),
     notes:JSON.parse(localStorage.getItem("c360_notes_pdf")||"[]"),
+    payments:JSON.parse(localStorage.getItem("c360_payments_local")||"[]"),
     inventory:JSON.parse(localStorage.getItem("c360_inventory_moves")||"[]")
   };
   const b=JSON.parse(localStorage.getItem("c360_realtime_backup")||"null")||old;
   users=b.users?.length?b.users:[...DEFAULT_USERS]; state.clients=b.clients||[]; state.products=b.products?.length?b.products:DEFAULT_PRODUCTS;
-  state.prices=b.prices||{}; state.notes=b.notes||[]; state.inventory=b.inventory||[];
+  state.prices=b.prices||{}; state.notes=b.notes||[]; state.payments=b.payments||[]; state.inventory=b.inventory||[];
 }
-function renderAll(){renderProfiles();renderEmployees();refreshSelects();renderItems();renderClients();renderProducts();renderPrices();renderInventory();generateReport();localBackup()}
+function renderAll(){renderProfiles();renderEmployees();refreshSelects();renderItems();renderClients();renderProducts();renderPrices();renderAccounts();renderInventory();generateReport();localBackup()}
 
 async function loadCloudData(showStatus=true){
   if(!CLOUD_ENABLED){loadLocalBackup();renderAll();setSync("Modo local: falta configurar Supabase","error");return}
@@ -559,6 +604,7 @@ async function loadCloudData(showStatus=true){
     db.from("c360_notes").select("*").order("created_at",{ascending:false}),
     db.from("c360_inventory").select("*").order("created_at",{ascending:false})
   ]);
+  const payments=await db.from("c360_payments").select("*").order("payment_date",{ascending:false});
   const error=[userRows,clients,products,prices,notes,inventory].find(x=>x.error)?.error;
   if(error){console.error(error);loadLocalBackup();renderAll();setSync("Sin conexión: usando respaldo local","error");return}
   users=[
@@ -569,6 +615,7 @@ async function loadCloudData(showStatus=true){
   state.products=products.data.map(x=>({id:x.id,name:x.name,price:Number(x.price||0)}));
   state.prices={}; prices.data.forEach(x=>{state.prices[x.client_id]??={};state.prices[x.client_id][x.product_id]=Number(x.price)});
   state.notes=notes.data.map(x=>({id:x.id,folio:x.folio,clientId:x.client_id,clientName:x.client_name,clientPhone:x.client_phone||"",items:x.items||[],total:Number(x.total||0),createdAt:x.created_at,printStatus:x.print_status||"pendiente"}));
+  state.payments=payments.error?[]:(payments.data||[]).map(x=>({id:x.id,clientId:x.client_id,amount:Number(x.amount||0),date:x.payment_date,method:x.method||"",reference:x.reference||"",notes:x.notes||"",createdAt:x.created_at||x.payment_date,createdBy:x.created_by||""}));
   state.inventory=inventory.data.map(x=>({id:x.id,type:x.type,date:x.move_date,productId:x.product_id,productName:x.product_name,unit:x.unit,qty:Number(x.qty),unitCost:Number(x.unit_cost||0),supplier:x.supplier||"",lot:x.lot||"",reference:x.reference||"",reason:x.reason||"",notes:x.notes||"",createdAt:x.created_at}));
   if(!state.products.length){
     await db.from("c360_products").insert(DEFAULT_PRODUCTS.map(p=>({id:p.id,name:p.name,price:p.price})));
@@ -585,6 +632,7 @@ function startRealtime(){
     .on("postgres_changes",{event:"*",schema:"public",table:"c360_products"},scheduleReload)
     .on("postgres_changes",{event:"*",schema:"public",table:"c360_prices"},scheduleReload)
     .on("postgres_changes",{event:"*",schema:"public",table:"c360_notes"},scheduleReload)
+    .on("postgres_changes",{event:"*",schema:"public",table:"c360_payments"},scheduleReload)
     .on("postgres_changes",{event:"*",schema:"public",table:"c360_inventory"},scheduleReload)
     .subscribe(status=>{if(status==="SUBSCRIBED")setSync("Conectado en tiempo real","ok")});
 }
@@ -747,6 +795,36 @@ function effectivePrice(cid,pid){const s=state.prices?.[cid]?.[pid];return s!==u
 function updateNotePrice(){if($("noteProduct").value)$("notePrice").value=effectivePrice($("noteClient").value,$("noteProduct").value).toFixed(2)}
 function renderItems(){$("noteItems").innerHTML=state.items.length?state.items.map(i=>`<tr><td>${esc(i.name)}</td><td class="num">${i.qty.toFixed(3)}</td><td class="num">${money.format(i.price)}</td><td class="num">${money.format(i.amount)}</td><td><button class="danger" data-remove="${i.id}">Quitar</button></td></tr>`).join(""):'<tr><td colspan="5" class="num">Sin productos</td></tr>';document.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{state.items=state.items.filter(i=>i.id!==b.dataset.remove);renderItems()})}
 function renderClients(){$("clientList").innerHTML=state.clients.length?state.clients.map(c=>`<div class="panel" style="padding:14px;margin-top:10px"><strong>${esc(c.name)}</strong><span class="badge">${c.phone?esc(c.phone):"Sin teléfono"}</span></div>`).join(""):'<div class="empty">Sin clientes</div>'}
+
+function clientAccount(clientId){
+  const sales=state.notes.filter(n=>n.clientId===clientId).reduce((sum,n)=>sum+Number(n.total||0),0);
+  const payments=state.payments.filter(p=>p.clientId===clientId).reduce((sum,p)=>sum+Number(p.amount||0),0);
+  return {sales,payments,balance:Math.max(0,sales-payments)};
+}
+let selectedAccountClientId="";
+function renderAccounts(){
+  if(!$("accountsTable"))return;
+  const q=($("accountSearch")?.value||"").trim().toLowerCase();
+  const rows=state.clients.map(c=>({client:c,...clientAccount(c.id)})).filter(x=>!q||x.client.name.toLowerCase().includes(q)||(x.client.phone||"").toLowerCase().includes(q));
+  const all=state.clients.map(c=>clientAccount(c.id));
+  $("accountsTotalSales").textContent=money.format(all.reduce((s,x)=>s+x.sales,0));
+  $("accountsTotalPayments").textContent=money.format(all.reduce((s,x)=>s+x.payments,0));
+  $("accountsTotalBalance").textContent=money.format(all.reduce((s,x)=>s+x.balance,0));
+  $("accountsTable").innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.client.name)}</strong><br><small>${esc(x.client.phone||"Sin teléfono")}</small></td><td class="num">${money.format(x.sales)}</td><td class="num">${money.format(x.payments)}</td><td class="num account-balance ${x.balance>0?"positive":"zero"}">${money.format(x.balance)}</td><td><button class="secondary" data-account-client="${x.client.id}">Ver cuenta</button></td></tr>`).join(""):'<tr><td colspan="5">No hay clientes que coincidan.</td></tr>';
+  document.querySelectorAll("[data-account-client]").forEach(b=>b.onclick=()=>openAccount(b.dataset.accountClient));
+  if(selectedAccountClientId&&state.clients.some(c=>c.id===selectedAccountClientId))renderAccountDetail();
+}
+function openAccount(clientId){selectedAccountClientId=clientId;$("accountDetail").classList.remove("hidden");renderAccountDetail();$("accountDetail").scrollIntoView({behavior:"smooth",block:"start"})}
+function renderAccountDetail(){
+  const c=state.clients.find(x=>x.id===selectedAccountClientId);if(!c)return;
+  const a=clientAccount(c.id);
+  $("accountClientName").textContent=c.name;$("accountClientPhone").textContent=c.phone||"Sin teléfono registrado";$("accountClientBalance").textContent=money.format(a.balance);$("accountClientBalance").style.color=a.balance>0?"var(--bad)":"var(--ok)";
+  const movements=[
+    ...state.notes.filter(n=>n.clientId===c.id).map(n=>({kind:"sale",date:n.createdAt,amount:Number(n.total||0),title:`Nota de venta ${n.folio}`,detail:`${n.items?.length||0} producto(s)`})),
+    ...state.payments.filter(p=>p.clientId===c.id).map(p=>({kind:"payment",date:p.createdAt||p.date,amount:Number(p.amount||0),title:`Abono · ${p.method||"Sin método"}`,detail:[p.reference&&`Ref: ${p.reference}`,p.notes].filter(Boolean).join(" · ")}))
+  ].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  $("accountMovements").innerHTML=movements.length?movements.map(m=>`<div class="account-movement"><div><strong>${new Date(m.date).toLocaleDateString("es-MX")}</strong><br><small>${new Date(m.date).toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"})}</small></div><div><strong>${esc(m.title)}</strong>${m.detail?`<br><small>${esc(m.detail)}</small>`:""}</div><div class="${m.kind==="payment"?"payment":"credit"}">${m.kind==="payment"?"− ":"+ "}${money.format(m.amount)}</div></div>`).join(""):'<div class="empty">Este cliente todavía no tiene movimientos.</div>';
+}
 function renderProducts(){
   $("productTable").innerHTML=state.products.map(p=>`<tr><td><input data-pname="${p.id}" value="${esc(p.name)}"></td><td><input data-pprice="${p.id}" type="number" step="0.01" min="0" value="${p.price}"></td><td><button class="secondary" data-update="${p.id}">Guardar</button> <button class="danger" data-delete="${p.id}">Eliminar</button></td></tr>`).join("");
   document.querySelectorAll("[data-update]").forEach(b=>b.onclick=async()=>{const id=b.dataset.update,name=document.querySelector(`[data-pname="${id}"]`).value.trim(),price=Number(document.querySelector(`[data-pprice="${id}"]`).value||0);if(CLOUD_ENABLED){const r=await db.from("c360_products").update({name,price}).eq("id",id);if(r.error)return setSync("No se pudo actualizar producto","error")}else{const p=state.products.find(x=>x.id===id);p.name=name;p.price=price;renderAll()}setSync("Producto actualizado","ok")});
@@ -759,7 +837,7 @@ function generateReport(){
  notes.forEach(n=>n.items.forEach(i=>{if(!productMap[i.productId])productMap[i.productId]={name:i.name,qty:0,total:0};productMap[i.productId].qty+=i.qty;productMap[i.productId].total+=i.amount}));
  const clientsHtml=clientIds.map(cid=>{const cn=notes.filter(n=>n.clientId===cid),name=cn[0]?.clientName||"Cliente";return `<div class="client-block"><h3>${esc(name)}</h3>${cn.map(n=>`<div class="note-box"><div class="note-head"><span>${esc(n.folio)}</span><span>${new Date(n.createdAt).toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"})}</span></div><table class="pdf-table"><thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Importe</th></tr></thead><tbody>${n.items.map(i=>`<tr><td>${esc(i.name)}</td><td>${Number(i.qty).toFixed(3)}</td><td>${money.format(i.price)}</td><td>${money.format(i.amount)}</td></tr>`).join("")}</tbody><tfoot><tr><th colspan="3">Total nota</th><th>${money.format(n.total)}</th></tr></tfoot></table></div>`).join("")}</div>`}).join("");
  const productsHtml=Object.values(productMap).map(p=>`<tr><td>${esc(p.name)}</td><td>${p.qty.toFixed(3)}</td><td>${money.format(p.total)}</td></tr>`).join("");
- $("pdfSheet").innerHTML=`<div class="pdf-header"><div><h1>Resumen General Diario</h1><p>Carnicería 360° — Notas a crédito</p></div><div class="pdf-meta"><strong>${new Date(date+"T12:00:00").toLocaleDateString("es-MX",{day:"2-digit",month:"long",year:"numeric"})}</strong><br>Generado ${new Date().toLocaleString("es-MX")}</div></div><div class="pdf-summary"><div class="pdf-card"><small>Notas</small><strong>${notes.length}</strong></div><div class="pdf-card"><small>Clientes</small><strong>${clientIds.length}</strong></div><div class="pdf-card"><small>Venta total</small><strong>${money.format(total)}</strong></div><div class="pdf-card"><small>Productos distintos</small><strong>${Object.keys(productMap).length}</strong></div></div>${notes.length?clientsHtml:'<div class="empty">No hay notas para esta fecha.</div>'}<div class="product-summary"><h3>Resumen por producto</h3><table class="pdf-table"><thead><tr><th>Producto</th><th>Cantidad total</th><th>Importe total</th></tr></thead><tbody>${productsHtml||'<tr><td colspan="3">Sin movimientos</td></tr>'}</tbody></table></div>`;
+ $("pdfSheet").innerHTML=`<div class="pdf-header"><div><h1>Resumen General Diario</h1><p>Carnicería 360° — Notas de venta</p></div><div class="pdf-meta"><strong>${new Date(date+"T12:00:00").toLocaleDateString("es-MX",{day:"2-digit",month:"long",year:"numeric"})}</strong><br>Generado ${new Date().toLocaleString("es-MX")}</div></div><div class="pdf-summary"><div class="pdf-card"><small>Notas</small><strong>${notes.length}</strong></div><div class="pdf-card"><small>Clientes</small><strong>${clientIds.length}</strong></div><div class="pdf-card"><small>Venta total</small><strong>${money.format(total)}</strong></div><div class="pdf-card"><small>Productos distintos</small><strong>${Object.keys(productMap).length}</strong></div></div>${notes.length?clientsHtml:'<div class="empty">No hay notas para esta fecha.</div>'}<div class="product-summary"><h3>Resumen por producto</h3><table class="pdf-table"><thead><tr><th>Producto</th><th>Cantidad total</th><th>Importe total</th></tr></thead><tbody>${productsHtml||'<tr><td colspan="3">Sin movimientos</td></tr>'}</tbody></table></div>`;
 }
 function inventorySummary(){const map={};state.inventory.forEach(m=>{const key=m.productId+"|"+m.unit;if(!map[key])map[key]={productId:m.productId,name:m.productName,unit:m.unit,entries:0,exits:0,costValue:0};if(m.type==="entrada"){map[key].entries+=m.qty;map[key].costValue+=m.qty*(m.unitCost||0)}else map[key].exits+=m.qty});return Object.values(map).map(x=>({...x,available:x.entries-x.exits,avgCost:x.entries?x.costValue/x.entries:0,value:(x.entries-x.exits)*(x.entries?x.costValue/x.entries:0)}))}
 function renderInventory(){const rows=inventorySummary();$("invProductsCount").textContent=rows.filter(r=>r.available>0).length;$("invTotalKg").textContent=rows.filter(r=>r.unit==="kg").reduce((s,r)=>s+r.available,0).toFixed(3)+" kg";$("invTotalPieces").textContent=rows.filter(r=>r.unit==="pza").reduce((s,r)=>s+r.available,0).toFixed(0);$("invPurchaseValue").textContent=money.format(state.inventory.filter(m=>m.type==="entrada").reduce((s,m)=>s+m.qty*(m.unitCost||0),0));$("inventoryStockTable").innerHTML=rows.length?rows.map(r=>`<tr><td>${esc(r.name)}</td><td>${r.unit==="kg"?"Kilogramos":"Piezas"}</td><td class="num">${r.entries.toFixed(r.unit==="kg"?3:0)}</td><td class="num">${r.exits.toFixed(r.unit==="kg"?3:0)}</td><td class="num ${r.available<=0?"stock-low":"stock-ok"}">${r.available.toFixed(r.unit==="kg"?3:0)}</td><td class="num">${money.format(r.avgCost)}</td><td class="num">${money.format(r.value)}</td></tr>`).join(""):'<tr><td colspan="7">Sin movimientos de inventario.</td></tr>';renderInventoryMovements()}
@@ -772,7 +850,7 @@ $("saveInventoryEntry").onclick=async()=>{const pid=$("invEntryProduct").value,p
 $("saveInventoryExit").onclick=async()=>{const pid=$("invExitProduct").value,p=state.products.find(x=>x.id===pid),unit=$("invExitUnit").value,qty=Number($("invExitQty").value),available=currentAvailable(pid,unit);if(!pid||!qty||qty<=0){$("invExitMessage").textContent="Selecciona producto y captura una cantidad.";$("invExitMessage").className="message error";return}if(qty>available){$("invExitMessage").textContent=`No hay suficiente existencia. Disponible: ${available.toFixed(unit==="kg"?3:0)} ${unit}.`;$("invExitMessage").className="message error";return}const item={id:uid(),type:"salida",date:$("invExitDate").value,productId:pid,productName:p.name,unit,qty,unitCost:0,supplier:"",lot:"",reference:$("invExitRef").value.trim(),reason:$("invExitReason").value,notes:$("invExitNotes").value.trim(),createdAt:new Date().toISOString()};if(CLOUD_ENABLED){const r=await cloudInsert("c360_inventory",{id:item.id,type:item.type,move_date:item.date,product_id:item.productId,product_name:item.productName,unit:item.unit,qty:item.qty,unit_cost:0,supplier:"",lot:"",reference:item.reference,reason:item.reason,notes:item.notes,created_at:item.createdAt});if(r.error)return}else{state.inventory.push(item);renderAll()}["invExitQty","invExitRef","invExitNotes"].forEach(id=>$(id).value="");$("invExitMessage").textContent="Salida guardada correctamente.";$("invExitMessage").className="message ok"};
 $("invFilterProduct").onchange=renderInventoryMovements;$("invFilterType").onchange=renderInventoryMovements;
 
-document.querySelectorAll(".menu button").forEach(b=>b.onclick=()=>{if(currentUser?.role!=="admin"&&b.dataset.module!=="notas")return;document.querySelectorAll(".menu button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".module").forEach(m=>m.classList.add("hidden"));$(b.dataset.module).classList.remove("hidden");const map={notas:["Notas a crédito","Captura ventas con precios por cliente."],clientes:["Clientes","Alta y consulta de clientes."],empleados:["Empleados","Alta, fotografía y administración de perfiles."],productos:["Productos","Catálogo editable de vísceras."],precios:["Precios especiales","Precios distintos por cliente."],inventario:["Inventario","Control de entradas, compras, salidas y existencias."],resumen:["Resumen diario PDF","Hoja imprimible con todos los pedidos del día."]};$("title").textContent=map[b.dataset.module][0];$("subtitle").textContent=map[b.dataset.module][1];if(b.dataset.module==="productos")renderProducts();if(b.dataset.module==="precios")renderPrices();if(b.dataset.module==="inventario")renderInventory();if(b.dataset.module==="resumen")generateReport()});
+document.querySelectorAll(".menu button").forEach(b=>b.onclick=()=>{if(currentUser?.role!=="admin"&&b.dataset.module!=="notas")return;document.querySelectorAll(".menu button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".module").forEach(m=>m.classList.add("hidden"));$(b.dataset.module).classList.remove("hidden");const map={notas:["Notas de venta","Captura ventas con precios por cliente."],clientes:["Clientes","Alta y consulta de clientes."],cuentas:["Cuentas de clientes","Consulta saldos y registra abonos."],empleados:["Empleados","Alta, fotografía y administración de perfiles."],productos:["Productos","Catálogo editable de vísceras."],precios:["Precios especiales","Precios distintos por cliente."],inventario:["Inventario","Control de entradas, compras, salidas y existencias."],resumen:["Resumen diario PDF","Hoja imprimible con todos los pedidos del día."]};$("title").textContent=map[b.dataset.module][0];$("subtitle").textContent=map[b.dataset.module][1];if(b.dataset.module==="cuentas")renderAccounts();if(b.dataset.module==="productos")renderProducts();if(b.dataset.module==="precios")renderPrices();if(b.dataset.module==="inventario")renderInventory();if(b.dataset.module==="resumen")generateReport()});
 
 $("saveClient").onclick=async()=>{const name=$("clientName").value.trim(),phone=$("clientPhone").value.trim();if(!name){$("clientMessage").textContent="El nombre es obligatorio.";$("clientMessage").className="message error";return}const item={id:uid(),name,phone};if(CLOUD_ENABLED){const r=await cloudInsert("c360_clients",item);if(r.error)return}else{state.clients.push(item);renderAll()}$("clientName").value="";$("clientPhone").value="";$("clientMessage").textContent="Cliente guardado y sincronizado.";$("clientMessage").className="message ok"};
 $("saveProduct").onclick=async()=>{const name=$("productName").value.trim(),price=Number($("productPrice").value||0);if(!name){$("productMessage").textContent="Escribe el nombre del producto.";$("productMessage").className="message error";return}const item={id:uid(),name,price};if(CLOUD_ENABLED){const r=await cloudInsert("c360_products",item);if(r.error)return}else{state.products.push(item);renderAll()}$("productName").value="";$("productPrice").value="";$("productMessage").textContent="Producto guardado y sincronizado.";$("productMessage").className="message ok"};
@@ -780,7 +858,7 @@ $("addItem").onclick=()=>{const cid=$("noteClient").value,pid=$("noteProduct").v
 $("saveNote").onclick=async()=>{
   const cid=$("noteClient").value,c=state.clients.find(x=>x.id===cid);
   if(!cid||!state.items.length){$("noteMessage").textContent="Falta cliente o productos.";$("noteMessage").className="message error";return}
-  const item={id:uid(),folio:"CR-"+Date.now(),clientId:cid,clientName:c.name,clientPhone:c.phone||"",items:[...state.items],total:state.items.reduce((s,i)=>s+i.amount,0),createdAt:new Date().toISOString()};
+  const item={id:uid(),folio:"NV-"+Date.now(),clientId:cid,clientName:c.name,clientPhone:c.phone||"",items:[...state.items],total:state.items.reduce((s,i)=>s+i.amount,0),createdAt:new Date().toISOString()};
   if(CLOUD_ENABLED){
     const r=await cloudInsert("c360_notes",{
       id:item.id,folio:item.folio,client_id:item.clientId,client_name:item.clientName,client_phone:item.clientPhone,
@@ -790,16 +868,29 @@ $("saveNote").onclick=async()=>{
     if(r.error)return
   }else{state.notes.unshift({...item,printStatus:"pendiente"});renderAll()}
   state.items=[];renderItems();
-  $("noteMessage").textContent="Nota guardada correctamente.";$("noteMessage").className="message ok";
-  $("dispatchMessage").textContent=CLOUD_ENABLED?"Nota enviada a la cola de impresión. La computadora receptora la imprimirá automáticamente.":"La nota quedó guardada solamente en este dispositivo. Configura Supabase para activar la impresión automática.";
+  $("noteMessage").textContent="Nota de venta guardada correctamente.";$("noteMessage").className="message ok";
+  $("dispatchMessage").textContent=CLOUD_ENABLED?"Nota de venta enviada a la cola de impresión. La computadora receptora la imprimirá automáticamente.":"La nota de venta quedó guardada solamente en este dispositivo. Configura Supabase para activar la impresión automática.";
 };
 $("clearNote").onclick=()=>{state.items=[];renderItems()};
 $("noteClient").onchange=updateNotePrice;$("noteProduct").onchange=updateNotePrice;$("priceClient").onchange=renderPrices;
 $("savePrices").onclick=async()=>{const cid=$("priceClient").value;if(!cid)return;const inputs=[...document.querySelectorAll(".special")];if(CLOUD_ENABLED){const rows=inputs.filter(i=>i.value!=="").map(i=>({client_id:cid,product_id:i.dataset.id,price:Number(i.value)}));const blankIds=inputs.filter(i=>i.value==="").map(i=>i.dataset.id);if(rows.length){const r=await db.from("c360_prices").upsert(rows,{onConflict:"client_id,product_id"});if(r.error)return setSync("No se pudieron guardar precios","error")}if(blankIds.length)await db.from("c360_prices").delete().eq("client_id",cid).in("product_id",blankIds)}else{state.prices[cid]={};inputs.forEach(i=>{if(i.value!=="")state.prices[cid][i.dataset.id]=Number(i.value)});renderAll()}$("priceMessage").textContent="Precios guardados y sincronizados.";$("priceMessage").className="message ok"};
+$("accountSearch").oninput=renderAccounts;
+$("savePayment").onclick=async()=>{
+  const clientId=selectedAccountClientId,amount=Number($("paymentAmount").value||0),date=$("paymentDate").value;
+  if(!clientId||!amount||amount<=0||!date){$("paymentMessage").textContent="Selecciona un cliente y captura fecha y monto del abono.";$("paymentMessage").className="message error";return}
+  const balance=clientAccount(clientId).balance;if(amount>balance&&balance>0&&!confirm(`El abono ${money.format(amount)} es mayor al saldo ${money.format(balance)}. ¿Deseas registrarlo de todas formas?`))return;
+  const item={id:uid(),clientId,amount,date,method:$("paymentMethod").value,reference:$("paymentReference").value.trim(),notes:$("paymentNotes").value.trim(),createdAt:new Date().toISOString(),createdBy:currentUser?.name||""};
+  if(CLOUD_ENABLED){
+    const r=await cloudInsert("c360_payments",{id:item.id,client_id:item.clientId,amount:item.amount,payment_date:item.date,method:item.method,reference:item.reference,notes:item.notes,created_at:item.createdAt,created_by:item.createdBy});
+    if(r.error){$("paymentMessage").textContent="No se pudo registrar el abono. Verifica que exista la tabla c360_payments en Supabase.";$("paymentMessage").className="message error";return}
+    state.payments.unshift(item);
+  }else{state.payments.unshift(item)}
+  localStorage.setItem("c360_payments_local",JSON.stringify(state.payments));
+  $("paymentAmount").value="";$("paymentReference").value="";$("paymentNotes").value="";$("paymentMessage").textContent="Abono registrado correctamente.";$("paymentMessage").className="message ok";renderAccounts();localBackup();
+};
 $("generateReport").onclick=generateReport;$("printReport").onclick=()=>window.print();
-$("reportDate").value=new Date().toISOString().slice(0,10);$("invEntryDate").value=new Date().toISOString().slice(0,10);$("invExitDate").value=new Date().toISOString().slice(0,10);
+$("reportDate").value=new Date().toISOString().slice(0,10);$("paymentDate").value=new Date().toISOString().slice(0,10);$("invEntryDate").value=new Date().toISOString().slice(0,10);$("invExitDate").value=new Date().toISOString().slice(0,10);
 loadCloudData().then(()=>{restoreSession();startRealtime()});
 </script>
 </body>
 </html>
-
