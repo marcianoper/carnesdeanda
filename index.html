@@ -95,6 +95,13 @@ th{font-size:12px;text-transform:uppercase;color:var(--muted)}
 .account-product .qty{font-weight:800;white-space:nowrap}
 .account-product .price,.account-product .amount{white-space:nowrap;color:var(--muted)}
 .account-product .amount{color:var(--ink);font-weight:800}
+.account-note-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.account-note-editor{margin-top:10px;border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}
+.account-edit-row{display:grid;grid-template-columns:minmax(140px,1fr) 120px 120px 120px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line)}
+.account-edit-row:last-child{border-bottom:0}
+.account-edit-row input{width:100%;min-height:40px;border:1px solid var(--line);border-radius:9px;padding:8px 9px;text-align:right}
+.account-edit-total{display:flex;justify-content:flex-end;gap:10px;align-items:center;margin-top:10px;font-weight:900}
+@media(max-width:600px){.account-edit-row{grid-template-columns:1fr 1fr}.account-edit-row .edit-name{grid-column:1/-1}.account-edit-row .edit-amount{grid-column:2;text-align:right}}
 @media(max-width:900px){.account-kpis{grid-template-columns:1fr}.account-movement{grid-template-columns:1fr auto}.account-movement>div:nth-child(2){grid-column:1/-1;grid-row:2}.account-movement .credit,.account-movement .payment{text-align:right}.account-product{grid-template-columns:1fr auto}.account-product .price{display:none}.account-product .amount{grid-column:2}}
 @media (min-width:901px) and (max-width:1180px){
   .app{grid-template-columns:92px minmax(0,1fr)}
@@ -531,7 +538,7 @@ function enterApp(user){
 function applyPermissions(){
   const admin=currentUser?.role==="admin";
   document.querySelectorAll('.menu button').forEach(btn=>{
-    const allowed=admin||btn.dataset.module==="notas";
+    const allowed=admin||btn.dataset.module==="notas"||btn.dataset.module==="cuentas";
     btn.classList.toggle("hidden",!allowed);
   });
   if(!admin){
@@ -841,10 +848,11 @@ function renderRecentNotes(){
   let notes=[...state.notes].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
   if(currentUser?.role!=="admin")notes=notes.filter(n=>!n.createdBy||n.createdBy===currentUser?.name);
   notes=notes.slice(0,20);
-  el.innerHTML=notes.length?notes.map(n=>`<div class="recent-note"><div class="recent-note-head"><div><strong>${esc(n.folio)}</strong> · ${esc(n.clientName)}<div class="recent-note-meta">${new Date(n.createdAt).toLocaleString("es-MX")} · ${money.format(n.total)}</div></div><div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><span class="note-status">${esc(noteStatusText(n.printStatus))}</span><button class="secondary" data-edit-note="${n.id}" style="min-height:38px;padding:8px 11px">Editar</button></div></div><div class="recent-note-items">${(n.items||[]).map(i=>`<div class="recent-note-item"><span>${esc(i.name)}</span><span>${Number(i.qty).toFixed(3)} × ${money.format(i.price)}</span><span><strong>${money.format(i.amount)}</strong></span></div>`).join("")}</div></div>`).join(""):'<div class="empty">Todavía no hay notas recientes.</div>';
+  el.innerHTML=notes.length?notes.map(n=>`<div class="recent-note"><div class="recent-note-head"><div><strong>${esc(n.folio)}</strong> · ${esc(n.clientName)}<div class="recent-note-meta">${new Date(n.createdAt).toLocaleString("es-MX")} · ${money.format(n.total)}</div></div><div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><span class="note-status">${esc(noteStatusText(n.printStatus))}</span>${currentUser?.role==="admin"?`<button class="secondary" data-edit-note="${n.id}" style="min-height:38px;padding:8px 11px">Editar</button>`:""}</div></div><div class="recent-note-items">${(n.items||[]).map(i=>`<div class="recent-note-item"><span>${esc(i.name)}</span><span>${Number(i.qty).toFixed(3)} × ${money.format(i.price)}</span><span><strong>${money.format(i.amount)}</strong></span></div>`).join("")}</div></div>`).join(""):'<div class="empty">Todavía no hay notas recientes.</div>';
   el.querySelectorAll("[data-edit-note]").forEach(b=>b.onclick=()=>startEditNote(b.dataset.editNote));
 }
 function startEditNote(id){
+  if(currentUser?.role!=="admin"){alert("Solo el administrador puede editar notas de venta.");return}
   const n=state.notes.find(x=>x.id===id);if(!n)return;
   editingNoteId=id;
   $("noteClient").value=n.clientId;
@@ -878,21 +886,71 @@ function renderAccounts(){
   document.querySelectorAll("[data-account-client]").forEach(b=>b.onclick=()=>openAccount(b.dataset.accountClient));
   if(selectedAccountClientId&&state.clients.some(c=>c.id===selectedAccountClientId))renderAccountDetail();
 }
-function openAccount(clientId){selectedAccountClientId=clientId;$("accountDetail").classList.remove("hidden");renderAccountDetail();$("accountDetail").scrollIntoView({behavior:"smooth",block:"start"})}
+function openAccount(clientId){selectedAccountClientId=clientId;accountEditingNoteId="";$('accountDetail').classList.remove('hidden');renderAccountDetail();$('accountDetail').scrollIntoView({behavior:'smooth',block:'start'})}
+let accountEditingNoteId="";
+function accountEditNote(id){
+  if(currentUser?.role!=="admin"){alert("Solo el administrador puede editar pesadas pasadas.");return}
+  const n=state.notes.find(x=>x.id===id);if(!n)return;
+  accountEditingNoteId=id;renderAccountDetail();
+  const target=document.querySelector(`[data-account-editor="${id}"]`);if(target)target.scrollIntoView({behavior:"smooth",block:"center"});
+}
+function cancelAccountEdit(){accountEditingNoteId="";renderAccountDetail()}
+async function saveAccountNoteEdit(noteId,shouldPrint){
+  if(currentUser?.role!=="admin"){alert("Solo el administrador puede guardar cambios en pesadas pasadas.");accountEditingNoteId="";renderAccountDetail();return}
+  const n=state.notes.find(x=>x.id===noteId);if(!n)return;
+  const rows=[...document.querySelectorAll(`[data-account-editor="${noteId}"] [data-account-edit-item]`)];
+  if(!rows.length)return;
+  const updated=(n.items||[]).map((item,index)=>{
+    const row=rows[index];
+    const qty=Math.max(0,Number(row.querySelector('[data-field="qty"]').value||0));
+    const price=Math.max(0,Number(row.querySelector('[data-field="price"]').value||0));
+    return {...item,qty,price,amount:qty*price};
+  });
+  if(updated.some(i=>!i.qty||i.qty<=0)){alert('Revisa las cantidades: ninguna puede estar en cero.');return}
+  const total=updated.reduce((sum,i)=>sum+Number(i.amount||0),0);
+  const patch={items:updated,total};
+  if(shouldPrint){patch.print_status='pendiente';patch.print_attempts=0;patch.print_error=''}
+  if(CLOUD_ENABLED){
+    const r=await db.from('c360_notes').update(patch).eq('id',noteId);
+    if(r.error){console.error(r.error);alert(`No se pudo editar la nota: ${r.error.message||'revisa los permisos de Supabase.'}`);return}
+  }
+  n.items=updated;n.total=total;if(shouldPrint)n.printStatus='pendiente';
+  accountEditingNoteId='';
+  renderAccounts();renderRecentNotes();generateReport();localBackup();
+  const msg=$('paymentMessage');if(msg){msg.textContent=shouldPrint?'Pesada corregida y enviada nuevamente a impresión.':'Pesada corregida. El saldo se actualizó sin imprimir otro ticket.';msg.className='message ok'}
+}
+function recalcAccountEditor(noteId){
+  const editor=document.querySelector(`[data-account-editor="${noteId}"]`);if(!editor)return;
+  let total=0;
+  editor.querySelectorAll('[data-account-edit-item]').forEach(row=>{
+    const qty=Math.max(0,Number(row.querySelector('[data-field="qty"]').value||0));
+    const price=Math.max(0,Number(row.querySelector('[data-field="price"]').value||0));
+    const amount=qty*price;total+=amount;
+    const amountEl=row.querySelector('.edit-amount');if(amountEl)amountEl.textContent=money.format(amount);
+  });
+  const totalEl=editor.querySelector('[data-account-edit-total]');if(totalEl)totalEl.textContent=money.format(total);
+}
 function renderAccountDetail(){
   const c=state.clients.find(x=>x.id===selectedAccountClientId);if(!c)return;
   const a=clientAccount(c.id);
-  $("accountClientName").textContent=c.name;$("accountClientPhone").textContent=c.phone||"Sin teléfono registrado";$("accountClientBalance").textContent=money.format(a.balance);$("accountClientBalance").style.color=a.balance>0?"var(--bad)":"var(--ok)";
+  $('accountClientName').textContent=c.name;$('accountClientPhone').textContent=c.phone||'Sin teléfono registrado';$('accountClientBalance').textContent=money.format(a.balance);$('accountClientBalance').style.color=a.balance>0?'var(--bad)':'var(--ok)';
   const movements=[
-    ...state.notes.filter(n=>n.clientId===c.id).map(n=>({kind:"sale",date:n.createdAt,amount:Number(n.total||0),title:`Nota de venta ${n.folio}`,items:Array.isArray(n.items)?n.items:[]})),
-    ...state.payments.filter(p=>p.clientId===c.id).map(p=>({kind:"payment",date:p.createdAt||p.date,amount:Number(p.amount||0),title:`Abono · ${p.method||"Sin método"}`,detail:[p.reference&&`Ref: ${p.reference}`,p.notes].filter(Boolean).join(" · "),items:[]}))
+    ...state.notes.filter(n=>n.clientId===c.id).map(n=>({kind:'sale',id:n.id,date:n.createdAt,amount:Number(n.total||0),title:`Nota de venta ${n.folio}`,items:Array.isArray(n.items)?n.items:[],printStatus:n.printStatus})),
+    ...state.payments.filter(p=>p.clientId===c.id).map(p=>({kind:'payment',id:p.id,date:p.createdAt||p.date,amount:Number(p.amount||0),title:`Abono · ${p.method||'Sin método'}`,detail:[p.reference&&`Ref: ${p.reference}`,p.notes].filter(Boolean).join(' · '),items:[]}))
   ].sort((a,b)=>new Date(b.date)-new Date(a.date));
-  $("accountMovements").innerHTML=movements.length?movements.map(m=>{
-    const products=m.kind==="sale"&&m.items.length
-      ?`<div class="account-products">${m.items.map(i=>`<div class="account-product"><strong>${esc(i.name||"Producto")}</strong><span class="qty">${Number(i.qty||0).toFixed(3)} kg/pza</span><span class="price">${money.format(Number(i.price||0))} c/u</span><span class="amount">${money.format(Number(i.amount||0))}</span></div>`).join("")}</div>`
-      :(m.kind==="sale"?'<br><small>Sin detalle de productos guardado.</small>':"");
-    return `<div class="account-movement"><div><strong>${new Date(m.date).toLocaleDateString("es-MX")}</strong><br><small>${new Date(m.date).toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"})}</small></div><div><strong>${esc(m.title)}</strong>${m.detail?`<br><small>${esc(m.detail)}</small>`:""}${products}</div><div class="${m.kind==="payment"?"payment":"credit"}">${m.kind==="payment"?"− ":"+ "}${money.format(m.amount)}</div></div>`
-  }).join(""):'<div class="empty">Este cliente todavía no tiene movimientos.</div>';
+  $('accountMovements').innerHTML=movements.length?movements.map(m=>{
+    const products=m.kind==='sale'&&m.items.length
+      ?`<div class="account-products">${m.items.map(i=>`<div class="account-product"><strong>${esc(i.name||'Producto')}</strong><span class="qty">${Number(i.qty||0).toFixed(3)} kg/pza</span><span class="price">${money.format(Number(i.price||0))} c/u</span><span class="amount">${money.format(Number(i.amount||0))}</span></div>`).join('')}</div>`
+      :(m.kind==='sale'?'<br><small>Sin detalle de productos guardado.</small>':'');
+    const actions=m.kind==='sale'&&currentUser?.role==='admin'?`<div class="account-note-actions"><button class="secondary" data-account-edit-note="${m.id}" style="min-height:38px;padding:8px 11px">✏️ Editar pesada</button></div>`:'';
+    const editor=m.kind==='sale'&&currentUser?.role==='admin'&&accountEditingNoteId===m.id?`<div class="account-note-editor" data-account-editor="${m.id}"><strong>Corregir pesada</strong><div style="font-size:12px;color:var(--muted);margin:4px 0 8px">Modifica kilos/cantidad o precio. El importe y el saldo se recalculan automáticamente.</div>${m.items.map((i,index)=>`<div class="account-edit-row" data-account-edit-item="${index}"><strong class="edit-name">${esc(i.name||'Producto')}</strong><input data-field="qty" type="number" min="0" step="0.001" value="${Number(i.qty||0).toFixed(3)}" aria-label="Cantidad de ${esc(i.name||'producto')}"><input data-field="price" type="number" min="0" step="0.01" value="${Number(i.price||0).toFixed(2)}" aria-label="Precio de ${esc(i.name||'producto')}"><strong class="edit-amount">${money.format(Number(i.amount||0))}</strong></div>`).join('')}<div class="account-edit-total"><span>Nuevo total:</span><span data-account-edit-total>${money.format(m.amount)}</span></div><div class="actions" style="margin-top:12px"><button class="primary" data-account-save-print="${m.id}">Guardar e imprimir</button><button class="secondary" data-account-save-only="${m.id}">Guardar sin imprimir</button><button class="secondary" data-account-cancel-edit>Cancelar</button></div></div>`:'';
+    return `<div class="account-movement"><div><strong>${new Date(m.date).toLocaleDateString('es-MX')}</strong><br><small>${new Date(m.date).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}</small></div><div><strong>${esc(m.title)}</strong>${m.detail?`<br><small>${esc(m.detail)}</small>`:''}${products}${actions}${editor}</div><div class="${m.kind==='payment'?'payment':'credit'}">${m.kind==='payment'?'− ':'+ '}${money.format(m.amount)}</div></div>`
+  }).join(''):'<div class="empty">Este cliente todavía no tiene movimientos.</div>';
+  $('accountMovements').querySelectorAll('[data-account-edit-note]').forEach(b=>b.onclick=()=>accountEditNote(b.dataset.accountEditNote));
+  $('accountMovements').querySelectorAll('[data-account-editor] input').forEach(inp=>inp.oninput=()=>recalcAccountEditor(accountEditingNoteId));
+  $('accountMovements').querySelectorAll('[data-account-save-print]').forEach(b=>b.onclick=()=>saveAccountNoteEdit(b.dataset.accountSavePrint,true));
+  $('accountMovements').querySelectorAll('[data-account-save-only]').forEach(b=>b.onclick=()=>saveAccountNoteEdit(b.dataset.accountSaveOnly,false));
+  $('accountMovements').querySelectorAll('[data-account-cancel-edit]').forEach(b=>b.onclick=cancelAccountEdit);
 }
 function renderProducts(){
   $("productTable").innerHTML=state.products.map(p=>`<tr><td><input data-pname="${p.id}" value="${esc(p.name)}"></td><td><input data-pprice="${p.id}" type="number" step="0.01" min="0" value="${p.price}"></td><td><button class="secondary" data-update="${p.id}">Guardar</button> <button class="danger" data-delete="${p.id}">Eliminar</button></td></tr>`).join("");
@@ -919,7 +977,7 @@ $("saveInventoryEntry").onclick=async()=>{const pid=$("invEntryProduct").value,p
 $("saveInventoryExit").onclick=async()=>{const pid=$("invExitProduct").value,p=state.products.find(x=>x.id===pid),unit=$("invExitUnit").value,qty=Number($("invExitQty").value),available=currentAvailable(pid,unit);if(!pid||!qty||qty<=0){$("invExitMessage").textContent="Selecciona producto y captura una cantidad.";$("invExitMessage").className="message error";return}if(qty>available){$("invExitMessage").textContent=`No hay suficiente existencia. Disponible: ${available.toFixed(unit==="kg"?3:0)} ${unit}.`;$("invExitMessage").className="message error";return}const item={id:uid(),type:"salida",date:$("invExitDate").value,productId:pid,productName:p.name,unit,qty,unitCost:0,supplier:"",lot:"",reference:$("invExitRef").value.trim(),reason:$("invExitReason").value,notes:$("invExitNotes").value.trim(),createdAt:new Date().toISOString()};if(CLOUD_ENABLED){const r=await cloudInsert("c360_inventory",{id:item.id,type:item.type,move_date:item.date,product_id:item.productId,product_name:item.productName,unit:item.unit,qty:item.qty,unit_cost:0,supplier:"",lot:"",reference:item.reference,reason:item.reason,notes:item.notes,created_at:item.createdAt});if(r.error)return}else{state.inventory.push(item);renderAll()}["invExitQty","invExitRef","invExitNotes"].forEach(id=>$(id).value="");$("invExitMessage").textContent="Salida guardada correctamente.";$("invExitMessage").className="message ok"};
 $("invFilterProduct").onchange=renderInventoryMovements;$("invFilterType").onchange=renderInventoryMovements;
 
-document.querySelectorAll(".menu button").forEach(b=>b.onclick=()=>{if(currentUser?.role!=="admin"&&b.dataset.module!=="notas")return;document.querySelectorAll(".menu button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".module").forEach(m=>m.classList.add("hidden"));$(b.dataset.module).classList.remove("hidden");const map={notas:["Notas de venta","Captura ventas con precios por cliente."],clientes:["Clientes","Alta y consulta de clientes."],cuentas:["Cuentas de clientes","Consulta saldos y registra abonos."],empleados:["Empleados","Alta, fotografía y administración de perfiles."],productos:["Productos","Catálogo editable de vísceras."],precios:["Precios especiales","Precios distintos por cliente."],inventario:["Inventario","Control de entradas, compras, salidas y existencias."],resumen:["Resumen diario PDF","Hoja imprimible con todos los pedidos del día."]};$("title").textContent=map[b.dataset.module][0];$("subtitle").textContent=map[b.dataset.module][1];if(b.dataset.module==="notas")renderRecentNotes();if(b.dataset.module==="cuentas")renderAccounts();if(b.dataset.module==="productos")renderProducts();if(b.dataset.module==="precios")renderPrices();if(b.dataset.module==="inventario")renderInventory();if(b.dataset.module==="resumen")generateReport()});
+document.querySelectorAll(".menu button").forEach(b=>b.onclick=()=>{if(currentUser?.role!=="admin"&&!(["notas","cuentas"].includes(b.dataset.module)))return;document.querySelectorAll(".menu button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".module").forEach(m=>m.classList.add("hidden"));$(b.dataset.module).classList.remove("hidden");const map={notas:["Notas de venta","Captura ventas con precios por cliente."],clientes:["Clientes","Alta y consulta de clientes."],cuentas:["Cuentas de clientes","Consulta saldos y registra abonos."],empleados:["Empleados","Alta, fotografía y administración de perfiles."],productos:["Productos","Catálogo editable de vísceras."],precios:["Precios especiales","Precios distintos por cliente."],inventario:["Inventario","Control de entradas, compras, salidas y existencias."],resumen:["Resumen diario PDF","Hoja imprimible con todos los pedidos del día."]};$("title").textContent=map[b.dataset.module][0];$("subtitle").textContent=map[b.dataset.module][1];if(b.dataset.module==="notas")renderRecentNotes();if(b.dataset.module==="cuentas")renderAccounts();if(b.dataset.module==="productos")renderProducts();if(b.dataset.module==="precios")renderPrices();if(b.dataset.module==="inventario")renderInventory();if(b.dataset.module==="resumen")generateReport()});
 
 $("saveClient").onclick=async()=>{const name=$("clientName").value.trim(),phone=$("clientPhone").value.trim();if(!name){$("clientMessage").textContent="El nombre es obligatorio.";$("clientMessage").className="message error";return}const item={id:uid(),name,phone};if(CLOUD_ENABLED){const r=await cloudInsert("c360_clients",item);if(r.error)return}else{state.clients.push(item);renderAll()}$("clientName").value="";$("clientPhone").value="";$("clientMessage").textContent="Cliente guardado y sincronizado.";$("clientMessage").className="message ok"};
 $("saveProduct").onclick=async()=>{const name=$("productName").value.trim(),price=Number($("productPrice").value||0);if(!name){$("productMessage").textContent="Escribe el nombre del producto.";$("productMessage").className="message error";return}const item={id:uid(),name,price};if(CLOUD_ENABLED){const r=await cloudInsert("c360_products",item);if(r.error)return}else{state.products.push(item);renderAll()}$("productName").value="";$("productPrice").value="";$("productMessage").textContent="Producto guardado y sincronizado.";$("productMessage").className="message ok"};
@@ -931,6 +989,7 @@ async function saveCurrentNote(shouldPrint){
   const total=state.items.reduce((sum,i)=>sum+Number(i.qty)*Number(i.price),0);
   const normalizedItems=state.items.map(i=>({...i,qty:Number(i.qty),price:Number(i.price),amount:Number(i.qty)*Number(i.price)}));
   if(editingNoteId){
+    if(currentUser?.role!=="admin"){$("noteMessage").textContent="Solo el administrador puede editar notas de venta.";$("noteMessage").className="message error";cancelNoteEditing(true);return}
     const old=state.notes.find(n=>n.id===editingNoteId);if(!old)return;
     const patch={client_id:cid,client_name:c.name,client_phone:c.phone||"",items:normalizedItems,total};
     if(shouldPrint){patch.print_status="pendiente";patch.print_attempts=0;patch.print_error=""}
